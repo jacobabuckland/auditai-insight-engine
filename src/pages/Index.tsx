@@ -1,9 +1,8 @@
-
 import React, { useState, useMemo } from "react";
 import AuditForm from "@/components/AuditForm";
 import SuggestionCard, { Suggestion } from "@/components/SuggestionCard";
 import { fetchSuggestions, AuditFormData, crawlPage, applyHtmlSuggestions } from "@/services/auditService";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import PreviewPanel from "@/components/PreviewPanel";
 
@@ -41,7 +40,7 @@ const Index = () => {
     setOriginalHtml("");
 
     try {
-      // First, crawl the page
+      // First, crawl the page using the real API
       const crawlResult = await crawlPage(formData.page_url);
       
       if (!crawlResult.success) {
@@ -53,7 +52,7 @@ const Index = () => {
       setScreenshotPath(crawlResult.screenshot_path || null);
       setOriginalHtml(crawlResult.html || "");
       
-      // Then, fetch suggestions using the HTML from the crawl
+      // Then, fetch suggestions using the real API
       const results = await fetchSuggestions(formData, crawlResult.html);
       setSuggestions(results);
     } catch (error) {
