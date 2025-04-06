@@ -1,9 +1,11 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Suggestion } from "@/services/auditService";
-import { ViewIcon, SlidersHorizontalIcon, CheckIcon, MaximizeIcon } from "lucide-react";
+import { ViewIcon, SlidersHorizontalIcon, CheckIcon, MaximizeIcon, PencilIcon, EyeIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface PreviewPanelProps {
   originalHtml: string;
@@ -14,6 +16,17 @@ interface PreviewPanelProps {
 const PreviewPanel = ({ originalHtml, acceptedSuggestions, modifiedHtml }: PreviewPanelProps) => {
   const [viewMode, setViewMode] = useState<"split" | "full">("split");
   const [showingOriginal, setShowingOriginal] = useState<boolean>(false);
+  const [displayMode, setDisplayMode] = useState<"preview" | "edit">("preview");
+  const [editableHtml, setEditableHtml] = useState<string>(modifiedHtml);
+  const [savedHtml, setSavedHtml] = useState<string>(modifiedHtml);
+  const editableRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+
+  // Update editable HTML when modifiedHtml changes
+  useEffect(() => {
+    setEditableHtml(modifiedHtml);
+    setSavedHtml(modifiedHtml);
+  }, [modifiedHtml]);
 
   if (!originalHtml) {
     return (
@@ -28,15 +41,51 @@ const PreviewPanel = ({ originalHtml, acceptedSuggestions, modifiedHtml }: Previ
   };
 
   const handleSaveChanges = () => {
-    // This would save or apply changes in a real application
-    console.log("Changes saved:", acceptedSuggestions);
+    if (displayMode === "edit" && editableRef.current) {
+      const newHtml = editableRef.current.innerHTML;
+      setSavedHtml(newHtml);
+      
+      toast({
+        title: "Changes saved",
+        description: "Your edited content has been saved",
+        duration: 3000,
+      });
+      
+      // Optionally switch back to preview mode
+      setDisplayMode("preview");
+    } else {
+      // This would save or apply changes in a real application
+      console.log("Changes saved:", acceptedSuggestions);
+    }
+  };
+
+  const renderModifiedContent = () => {
+    if (displayMode === "edit") {
+      return (
+        <div 
+          ref={editableRef}
+          contentEditable={true}
+          className="p-4 w-full h-full min-h-[400px] border border-blue-200 rounded bg-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
+          dangerouslySetInnerHTML={{ __html: editableHtml }}
+        />
+      );
+    } else {
+      return (
+        <iframe
+          srcDoc={savedHtml}
+          className="w-full h-[420px] border-0"
+          title="Modified Page"
+          sandbox="allow-same-origin"
+        ></iframe>
+      );
+    }
   };
 
   return (
     <div className="mt-8 border rounded-lg bg-white shadow-sm">
-      <div className="border-b p-4 flex items-center justify-between bg-gray-50">
+      <div className="border-b p-4 flex flex-col md:flex-row md:items-center justify-between bg-gray-50 gap-4">
         <h3 className="text-lg font-semibold">Preview</h3>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           {viewMode === "full" && (
             <Button
               variant="outline"
@@ -47,6 +96,18 @@ const PreviewPanel = ({ originalHtml, acceptedSuggestions, modifiedHtml }: Previ
               {showingOriginal ? "Show Modified" : "Show Original"}
             </Button>
           )}
+          
+          <ToggleGroup type="single" value={displayMode} onValueChange={(value) => value && setDisplayMode(value as "preview" | "edit")}>
+            <ToggleGroupItem value="preview" aria-label="Preview AI Suggestions">
+              <EyeIcon size={16} className="mr-1" />
+              Preview
+            </ToggleGroupItem>
+            <ToggleGroupItem value="edit" aria-label="Edit AI Suggestions">
+              <PencilIcon size={16} className="mr-1" />
+              Edit
+            </ToggleGroupItem>
+          </ToggleGroup>
+          
           <Button variant="outline" size="sm" onClick={toggleView}>
             {viewMode === "split" ? (
               <>
@@ -62,16 +123,16 @@ const PreviewPanel = ({ originalHtml, acceptedSuggestions, modifiedHtml }: Previ
           </Button>
           <Button variant="default" size="sm" onClick={handleSaveChanges}>
             <CheckIcon size={16} className="mr-1" />
-            Accept Changes
+            Save Changes
           </Button>
         </div>
       </div>
 
-      <div className={`${viewMode === "split" ? "flex" : "block"} p-4 h-[500px]`}>
+      <div className={`${viewMode === "split" ? "flex flex-col md:flex-row" : "block"} p-4 h-[500px]`}>
         {(viewMode === "split" || (viewMode === "full" && showingOriginal)) && (
           <div
             className={`${
-              viewMode === "split" ? "w-1/2 pr-2 border-r" : "w-full"
+              viewMode === "split" ? "w-full md:w-1/2 md:pr-2 md:border-r mb-4 md:mb-0" : "w-full"
             } h-full overflow-hidden`}
           >
             <div className="mb-2 text-sm font-medium text-gray-700">Original</div>
@@ -91,25 +152,25 @@ const PreviewPanel = ({ originalHtml, acceptedSuggestions, modifiedHtml }: Previ
         {(viewMode === "split" || (viewMode === "full" && !showingOriginal)) && (
           <div
             className={`${
-              viewMode === "split" ? "w-1/2 pl-2" : "w-full"
+              viewMode === "split" ? "w-full md:w-1/2 md:pl-2" : "w-full"
             } h-full overflow-hidden`}
           >
-            <div className="mb-2 text-sm font-medium text-gray-700">
-              Modified
-              {acceptedSuggestions.length > 0 && (
-                <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded">
-                  {acceptedSuggestions.length} change{acceptedSuggestions.length > 1 ? "s" : ""}
-                </span>
-              )}
+            <div className="mb-2 text-sm font-medium text-gray-700 flex justify-between items-center">
+              <span>
+                Modified
+                {acceptedSuggestions.length > 0 && (
+                  <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded">
+                    {acceptedSuggestions.length} change{acceptedSuggestions.length > 1 ? "s" : ""}
+                  </span>
+                )}
+              </span>
+              <span className="text-xs text-gray-500">
+                {displayMode === "edit" ? "Edit mode: Make changes directly" : "Preview mode"}
+              </span>
             </div>
             <ScrollArea className="h-[450px] border rounded-md bg-gray-50">
               <div className="p-4">
-                <iframe
-                  srcDoc={modifiedHtml}
-                  className="w-full h-[420px] border-0"
-                  title="Modified Page"
-                  sandbox="allow-same-origin"
-                ></iframe>
+                {renderModifiedContent()}
               </div>
             </ScrollArea>
           </div>
