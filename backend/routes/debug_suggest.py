@@ -1,5 +1,5 @@
-from fastapi import APIrouter
-router = APIrouter()
+from fastapi import APIRouter
+router = APIRouter()
 
 @router.post('/debug-suggest')
 async def debug_suggest():

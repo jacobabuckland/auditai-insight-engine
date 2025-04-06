@@ -1,7 +1,7 @@
-from fastapi import APIrouter
+from fastapi import APIRouter
 from gpt import call_gpt
 
-router = APIrouter()
+router = APIRouter()
 
 @router.get('/test-gpt')
 async def test_gpt():
