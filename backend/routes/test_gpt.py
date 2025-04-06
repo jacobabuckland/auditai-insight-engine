@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from ..gpt import call_gpt
+from gpt import call_gpt
 
 router = APIRouter()
 
