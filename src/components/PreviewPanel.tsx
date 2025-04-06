@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Suggestion } from "@/services/auditService";
-import { ViewIcon, SplitViewHorizontalIcon, CheckIcon, MaximizeIcon } from "lucide-react";
+import { ViewIcon, SlidersHorizontalIcon, CheckIcon, MaximizeIcon } from "lucide-react";
 
 interface PreviewPanelProps {
   originalHtml: string;
@@ -55,7 +55,7 @@ const PreviewPanel = ({ originalHtml, acceptedSuggestions, modifiedHtml }: Previ
               </>
             ) : (
               <>
-                <SplitViewHorizontalIcon size={16} className="mr-1" />
+                <SlidersHorizontalIcon size={16} className="mr-1" />
                 Split View
               </>
             )}
