@@ -105,3 +105,28 @@ export async function fetchVariants(data: VariantRequest): Promise<Suggestion> {
     throw error;
   }
 }
+
+// Function to apply suggestions to HTML
+export function applyHtmlSuggestions(html: string, acceptedSuggestions: Suggestion[]): string {
+  // This is a simplified implementation 
+  // In a real application, you would implement actual DOM manipulation or regex replacement
+  if (!html || acceptedSuggestions.length === 0) return html;
+  
+  let modifiedHtml = html;
+  
+  // Add a simple visual indicator for each suggestion
+  // This is a placeholder implementation
+  acceptedSuggestions.forEach(suggestion => {
+    // Highlight elements that might be affected by this suggestion
+    // This is just for demonstration - would be more sophisticated in production
+    const highlightText = `<div class="bg-green-200 p-2 rounded my-2">
+      <strong>Applied Suggestion:</strong> ${suggestion.title}
+      <p>${suggestion.description}</p>
+    </div>`;
+    
+    // For demo purposes, add the highlight at the top of the body
+    modifiedHtml = modifiedHtml.replace('<body', `<body>${highlightText}`);
+  });
+  
+  return modifiedHtml;
+}

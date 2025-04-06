@@ -1,18 +1,26 @@
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import AuditForm from "@/components/AuditForm";
 import SuggestionCard, { Suggestion } from "@/components/SuggestionCard";
-import { fetchSuggestions, AuditFormData, crawlPage } from "@/services/auditService";
+import { fetchSuggestions, AuditFormData, crawlPage, applyHtmlSuggestions } from "@/services/auditService";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
+import PreviewPanel from "@/components/PreviewPanel";
 
 const Index = () => {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [acceptedSuggestions, setAcceptedSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCrawling, setIsCrawling] = useState(false);
   const [pageType, setPageType] = useState<string | null>(null);
   const [screenshotPath, setScreenshotPath] = useState<string | null>(null);
+  const [originalHtml, setOriginalHtml] = useState<string>("");
   const { toast } = useToast();
+
+  // Calculate modified HTML based on accepted suggestions
+  const modifiedHtml = useMemo(() => {
+    return applyHtmlSuggestions(originalHtml, acceptedSuggestions);
+  }, [originalHtml, acceptedSuggestions]);
 
   const handleSubmit = async (formData: AuditFormData) => {
     if (!formData.page_url || !formData.goal) {
@@ -27,8 +35,10 @@ const Index = () => {
     setIsCrawling(true);
     setIsLoading(true);
     setSuggestions([]);
+    setAcceptedSuggestions([]);
     setPageType(null);
     setScreenshotPath(null);
+    setOriginalHtml("");
 
     try {
       // First, crawl the page
@@ -41,6 +51,7 @@ const Index = () => {
       setIsCrawling(false);
       setPageType(crawlResult.page_type || null);
       setScreenshotPath(crawlResult.screenshot_path || null);
+      setOriginalHtml(crawlResult.html || "");
       
       // Then, fetch suggestions using the HTML from the crawl
       const results = await fetchSuggestions(formData, crawlResult.html);
@@ -58,8 +69,17 @@ const Index = () => {
     }
   };
 
+  // Handler for when a suggestion is accepted
+  const handleSuggestionAccepted = (suggestion: Suggestion, isAccepted: boolean) => {
+    if (isAccepted) {
+      setAcceptedSuggestions(prev => [...prev, suggestion]);
+    } else {
+      setAcceptedSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+    }
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
       <header className="mb-8 text-center">
         <h1 className="text-3xl font-bold mb-2">Audit a Page</h1>
         <p className="text-muted-foreground">
@@ -100,18 +120,30 @@ const Index = () => {
         </div>
       )}
 
+      {!isLoading && !isCrawling && originalHtml && (
+        <PreviewPanel 
+          originalHtml={originalHtml} 
+          modifiedHtml={modifiedHtml}
+          acceptedSuggestions={acceptedSuggestions}
+        />
+      )}
+
       {!isLoading && !isCrawling && suggestions.length > 0 && (
         <div className="mt-6">
           <h2 className="text-2xl font-semibold mb-4">Suggestions</h2>
           <div className="grid gap-4 md:grid-cols-2">
             {suggestions.map((suggestion) => (
-              <SuggestionCard key={suggestion.id} suggestion={suggestion} />
+              <SuggestionCard 
+                key={suggestion.id} 
+                suggestion={suggestion} 
+                onAcceptToggle={(isAccepted) => handleSuggestionAccepted(suggestion, isAccepted)}
+              />
             ))}
           </div>
         </div>
       )}
 
-      {!isLoading && !isCrawling && suggestions.length === 0 && (
+      {!isLoading && !isCrawling && suggestions.length === 0 && !originalHtml && (
         <div className="text-center py-10 text-muted-foreground">
           Submit the form to get optimization suggestions
         </div>

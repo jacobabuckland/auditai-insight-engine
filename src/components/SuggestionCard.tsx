@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Check, RefreshCcw, Pencil } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { fetchVariants, VariantRequest } from "@/services/auditService";
 
 export type Suggestion = {
   id: string;
@@ -14,9 +15,10 @@ export type Suggestion = {
 
 type SuggestionCardProps = {
   suggestion: Suggestion;
+  onAcceptToggle?: (isAccepted: boolean) => void;
 };
 
-const SuggestionCard = ({ suggestion: initialSuggestion }: SuggestionCardProps) => {
+const SuggestionCard = ({ suggestion: initialSuggestion, onAcceptToggle }: SuggestionCardProps) => {
   const [suggestion, setSuggestion] = useState(initialSuggestion);
   const [isAccepted, setIsAccepted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -30,7 +32,12 @@ const SuggestionCard = ({ suggestion: initialSuggestion }: SuggestionCardProps) 
   };
 
   const handleAccept = () => {
-    setIsAccepted(!isAccepted);
+    const newAcceptedState = !isAccepted;
+    setIsAccepted(newAcceptedState);
+    
+    if (onAcceptToggle) {
+      onAcceptToggle(newAcceptedState);
+    }
   };
 
   const handleEdit = () => {
@@ -47,28 +54,22 @@ const SuggestionCard = ({ suggestion: initialSuggestion }: SuggestionCardProps) 
   const handleRegenerate = async () => {
     setIsRegenerating(true);
     try {
-      // Simulate API call to /variants
-      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/variants`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          suggestion_id: suggestion.id,
-          original_text: suggestion.description,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-
-      const data = await response.json();
+      // Prepare the request
+      const request: VariantRequest = {
+        suggestion_id: suggestion.id,
+        original_text: suggestion.description,
+      };
+      
+      // Call the fetchVariants function from auditService
+      const newVariant = await fetchVariants(request);
+      
       // Update the suggestion with the new variant
       setSuggestion({
         ...suggestion,
-        description: data.description || suggestion.description,
+        description: newVariant.description || suggestion.description,
       });
+      
+      setEditedDescription(newVariant.description || suggestion.description);
     } catch (error) {
       console.error("Failed to regenerate suggestion:", error);
     } finally {
