@@ -56,12 +56,14 @@ export async function fetchSuggestions(
   html?: string
 ): Promise<Suggestion[]> {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/suggest`, {
+    // Changed endpoint from /suggest to /debug-suggest
+    const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/debug-suggest`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ ...data, html }),
+      // Simplified request body for testing (can be empty or omit goal)
+      body: JSON.stringify({ page_url: data.page_url }),
     });
 
     if (!response.ok) {
