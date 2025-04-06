@@ -3,7 +3,10 @@ import openai
 import time
 import logging
 from typing import List
-            return response.choices[0].message["content"]
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+logger = logging.getLogger(__name__)
+
 def call_gpt(messages, model="gpt-4", temperature=0.7, retries=3):
     for attempt in range(retries):
         try:
@@ -31,8 +34,7 @@ def build_prompt(html: str, goal: str) -> List[dict]:
         {"role": "user", "content": f"Here is the HTML of the page:\n{html[:5000]}"},
         {"role": "system", "content": (
             "ONLY respond in valid JSON. Do not use markdown or commentary. Wrap your response like this:\n"
-            "```json\n{\"rationale\": string, \"suggestions\": [{\"text\": string, \"type\": string, \"target\": string, \"impact\": string}]}\n```\n"
-            "Fill in realistic suggestion values for the page above."
-            
+            "```json\n{\"rationale\": string, \"suggestions\": [{\"text\": string, \"type\": string, \"target\": string, \"impact\": string}]}\n```"
+            "\nFill in realistic suggestion values for the page above."
         )}
     ]
