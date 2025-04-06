@@ -17,7 +17,6 @@ def call_gpt(messages, model="gpt-4", temperature=0.7, retries=3):
             )
             return response.choices[0].message["content"]
         except Exception as e:
-          except Exception as e:
     logger.warning(f"GPT call failed on attempt {attempt + 1}: {repr(e)}")
             time.sleep(2 * (attempt + 1))
     raise RuntimeError("GPT call failed after retries.")
