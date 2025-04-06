@@ -17,7 +17,8 @@ def call_gpt(messages, model="gpt-4", temperature=0.7, retries=3):
             )
             return response.choices[0].message["content"]
         except Exception as e:
-            logger.warning(f"GPT call failed on attempt {attempt + 1}: {e}")
+          except Exception as e:
+    logger.warning(f"GPT call failed on attempt {attempt + 1}: {repr(e)}")
             time.sleep(2 * (attempt + 1))
     raise RuntimeError("GPT call failed after retries.")
 
@@ -36,5 +37,6 @@ def build_prompt(html: str, goal: str) -> List[dict]:
             "ONLY respond in valid JSON. Do not use markdown or commentary. Wrap your response like this:\n"
             "```json\n{\"rationale\": string, \"suggestions\": [{\"text\": string, \"type\": string, \"target\": string, \"impact\": string}]}\n```\n"
             "Fill in realistic suggestion values for the page above."
+            
         )}
     ]
