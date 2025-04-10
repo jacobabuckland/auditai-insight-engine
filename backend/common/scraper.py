@@ -7,6 +7,7 @@ def scrape_page(url: str) -> dict:
         page = browser.new_page()
         page.goto(url)
 
+        html = page.content()  # ✅ Capture raw HTML
         # Extract the HTML content
         html_content = page.content()
         
@@ -19,10 +20,13 @@ def scrape_page(url: str) -> dict:
 
         return {
             "url": url,
+            "html": html,  # ✅ Return raw HTML
             "title": meta,
             "headings": headings,
             "ctas": ctas,
             "forms": forms,
+            "page_type": "unknown",     # Optional placeholder
+            "screenshot_url": ""        # Optional placeholder
             "page_type": "unknown",  # optional placeholder
             "screenshot_url": "",    # optional placeholder
             "html": html_content,    # Include the page's HTML content
