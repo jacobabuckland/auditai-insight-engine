@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/use-toast";
 
 export type AuditFormData = {
@@ -30,6 +29,16 @@ export type CrawlResponse = {
   forms?: string[];
 };
 
+export type SuggestResponse = {
+  rationale: string;
+  suggestions: Array<{
+    text: string;
+    type: string;
+    target: string;
+    impact: string;
+  }>;
+};
+
 const API_BASE_URL = "https://auditai-insight-engine.onrender.com";
 
 export async function crawlPage(url: string): Promise<CrawlResponse> {
@@ -57,7 +66,7 @@ export async function crawlPage(url: string): Promise<CrawlResponse> {
         success: true,
         page_type: data.page_type || "unknown",
         screenshot_path: data.screenshot_url || "",
-        html: "", // The API doesn't currently return HTML
+        html: data.html || "", // Store the HTML content if available
         ...data
       };
     } else {
@@ -81,7 +90,7 @@ export async function crawlPage(url: string): Promise<CrawlResponse> {
 export async function fetchSuggestions(
   data: AuditFormData,
   html?: string
-): Promise<Suggestion[]> {
+): Promise<{ rationale: string; suggestions: Suggestion[] }> {
   try {
     console.log("Fetching suggestions for:", data.page_url);
     
@@ -100,20 +109,23 @@ export async function fetchSuggestions(
       throw new Error(`Error: ${response.status}`);
     }
 
-    const result = await response.json();
+    const result = await response.json() as SuggestResponse;
     console.log("Suggestions response:", result);
     
-    // Format the suggestions to match our frontend model
+    // Format the suggestions to match our frontend model and include the rationale
     if (result.suggestions && Array.isArray(result.suggestions)) {
-      return result.suggestions.map((s, index) => ({
-        id: `suggestion-${index}`,
-        title: s.text || "Suggestion",
-        description: `${s.type} - ${s.impact}: ${s.target}`,
-        impact: (s.impact || "medium").toLowerCase() as "high" | "medium" | "low"
-      }));
+      return {
+        rationale: result.rationale || "No rationale provided",
+        suggestions: result.suggestions.map((s, index) => ({
+          id: `suggestion-${index}`,
+          title: s.text || "Suggestion",
+          description: `${s.type} - ${s.target}`,
+          impact: (s.impact || "medium").toLowerCase() as "high" | "medium" | "low"
+        }))
+      };
     }
     
-    return [];
+    return { rationale: "No rationale provided", suggestions: [] };
   } catch (error) {
     console.error("Failed to fetch suggestions:", error);
     toast({
@@ -123,7 +135,7 @@ export async function fetchSuggestions(
     });
     
     // Return empty array in case of error
-    return [];
+    return { rationale: "Error fetching suggestions", suggestions: [] };
   }
 }
 

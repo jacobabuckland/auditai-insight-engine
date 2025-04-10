@@ -1,3 +1,4 @@
+
 from playwright.sync_api import sync_playwright
 
 def scrape_page(url: str) -> dict:
@@ -6,6 +7,9 @@ def scrape_page(url: str) -> dict:
         page = browser.new_page()
         page.goto(url)
 
+        # Extract the HTML content
+        html_content = page.content()
+        
         headings = [el.inner_text() for el in page.query_selector_all("h1, h2, h3")]
         ctas = [el.get_attribute("href") for el in page.query_selector_all("a, button") if el.get_attribute("href")]
         forms = [el.get_attribute("action") for el in page.query_selector_all("form") if el.get_attribute("action")]
@@ -21,4 +25,5 @@ def scrape_page(url: str) -> dict:
             "forms": forms,
             "page_type": "unknown",  # optional placeholder
             "screenshot_url": "",    # optional placeholder
+            "html": html_content,    # Include the page's HTML content
         }

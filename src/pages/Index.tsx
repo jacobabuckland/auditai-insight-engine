@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import PreviewPanel from "@/components/PreviewPanel";
 import Navigation from "@/components/Navigation";
+import { Card, CardContent } from "@/components/ui/card";
 
 const Index = () => {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -17,6 +18,7 @@ const Index = () => {
   const [pageType, setPageType] = useState<string | null>(null);
   const [screenshotPath, setScreenshotPath] = useState<string | null>(null);
   const [originalHtml, setOriginalHtml] = useState<string>("");
+  const [rationale, setRationale] = useState<string>("");
   const { toast } = useToast();
 
   // Use edited suggestions when available, otherwise use original suggestions
@@ -55,6 +57,7 @@ const Index = () => {
     setPageType(null);
     setScreenshotPath(null);
     setOriginalHtml("");
+    setRationale("");
 
     try {
       // First, crawl the page using the updated endpoint
@@ -68,14 +71,14 @@ const Index = () => {
       setPageType(crawlResult.page_type || null);
       setScreenshotPath(crawlResult.screenshot_path || null);
       
-      // For now, we're using empty HTML as the API doesn't return HTML content
-      // In a real scenario, you'd use the actual HTML from the crawl
-      const pageHtml = "<html><body><h1>Placeholder HTML</h1></body></html>";
+      // Store the HTML content from the crawl
+      const pageHtml = crawlResult.html || "<html><body><h1>No HTML content available</h1></body></html>";
       setOriginalHtml(pageHtml);
       
       // Then, fetch suggestions using the crawled data
       const suggestResults = await fetchSuggestions(formData, pageHtml);
-      setSuggestions(suggestResults);
+      setSuggestions(suggestResults.suggestions);
+      setRationale(suggestResults.rationale);
     } catch (error) {
       console.error("Error during audit:", error);
       toast({
@@ -155,7 +158,6 @@ const Index = () => {
           
           {screenshotPath && (
             <div className="ml-4 border rounded-md overflow-hidden w-16 h-16 bg-gray-100 flex-shrink-0">
-              {/* This would be a real image in production */}
               <div 
                 className="w-full h-full bg-gray-200 flex items-center justify-center text-xs text-gray-500"
                 style={{ backgroundImage: screenshotPath ? `url(${screenshotPath})` : 'none' }}
@@ -167,10 +169,19 @@ const Index = () => {
         </div>
       )}
 
+      {!isLoading && !isCrawling && rationale && (
+        <Card className="mb-8">
+          <CardContent className="pt-6">
+            <h2 className="text-xl font-semibold mb-2">Analysis Rationale</h2>
+            <p className="text-gray-700">{rationale}</p>
+          </CardContent>
+        </Card>
+      )}
+
       {!isLoading && !isCrawling && originalHtml && (
         <PreviewPanel 
           originalHtml={originalHtml} 
-          modifiedHtml={modifiedHtml}
+          modifiedHtml={modifiedHtml || originalHtml}
           acceptedSuggestions={acceptedSuggestions}
         />
       )}
