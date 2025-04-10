@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, RefreshCcw, Pencil } from "lucide-react";
+import { Check, RefreshCcw, Pencil, Save, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchVariants, VariantRequest } from "@/services/auditService";
 
@@ -24,6 +24,7 @@ const SuggestionCard = ({ suggestion: initialSuggestion, onAcceptToggle }: Sugge
   const [isEditing, setIsEditing] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [editedDescription, setEditedDescription] = useState(suggestion.description);
+  const [isEditingInline, setIsEditingInline] = useState(false);
 
   const impactColors = {
     high: "bg-red-100 text-red-800",
@@ -77,6 +78,29 @@ const SuggestionCard = ({ suggestion: initialSuggestion, onAcceptToggle }: Sugge
     }
   };
 
+  const handleInlineEditToggle = () => {
+    if (isEditingInline) {
+      // Save changes when exiting inline edit mode
+      setSuggestion({
+        ...suggestion,
+        description: editedDescription,
+      });
+    } else {
+      // Start with current description when entering edit mode
+      setEditedDescription(suggestion.description);
+    }
+    setIsEditingInline(!isEditingInline);
+  };
+
+  const handleInlineDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEditedDescription(e.target.value);
+  };
+
+  const handleInlineCancel = () => {
+    setEditedDescription(suggestion.description);
+    setIsEditingInline(false);
+  };
+
   return (
     <Card className={`w-full transition-all ${isAccepted ? 'border-2 border-green-500' : ''}`}>
       <CardHeader className="pb-2">
@@ -112,9 +136,45 @@ const SuggestionCard = ({ suggestion: initialSuggestion, onAcceptToggle }: Sugge
             onChange={(e) => setEditedDescription(e.target.value)}
             rows={3}
           />
+        ) : isEditingInline ? (
+          <div className="relative">
+            <textarea
+              className="w-full border rounded-md p-2 text-sm text-gray-600 focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
+              value={editedDescription}
+              onChange={handleInlineDescriptionChange}
+              rows={3}
+              autoFocus
+            />
+            <div className="flex mt-2 space-x-2 justify-end">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleInlineCancel}
+              >
+                <X size={16} className="mr-1" />
+                Cancel
+              </Button>
+              <Button 
+                variant="default" 
+                size="sm"
+                onClick={handleInlineEditToggle}
+              >
+                <Save size={16} className="mr-1" />
+                Save
+              </Button>
+            </div>
+          </div>
         ) : (
-          <CardDescription className="text-sm text-gray-600">
+          <CardDescription 
+            className="text-sm text-gray-600 relative group"
+            onClick={handleInlineEditToggle}
+          >
             {suggestion.description}
+            <span className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                <Pencil size={14} />
+              </Button>
+            </span>
           </CardDescription>
         )}
         
