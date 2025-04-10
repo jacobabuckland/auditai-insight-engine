@@ -1,8 +1,19 @@
 from pydantic import BaseModel
 from typing import List
 
-class SuggestRequest(BaseModel):
-    input: str
+
+class Suggestion(BaseModel):
+    text: str
+    type: str
+    target: str
+    impact: str
+
 
 class SuggestResponse(BaseModel):
-    suggestions: List[str]
+    rationale: str
+    suggestions: List[Suggestion]
+
+
+class SuggestRequest(BaseModel):
+    html: str
+    goal: str
