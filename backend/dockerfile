@@ -80,7 +80,7 @@ COPY . .
 
 # Install Python dependencies
 RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install -r backend/requirements.txt
 
 # Install Playwright browsers
 RUN playwright install --with-deps
