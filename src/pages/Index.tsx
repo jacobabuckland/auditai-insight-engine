@@ -8,6 +8,7 @@ import PreviewPanel from "@/components/PreviewPanel";
 
 const Index = () => {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [editedSuggestions, setEditedSuggestions] = useState<Map<string, Suggestion>>(new Map());
   const [acceptedSuggestions, setAcceptedSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCrawling, setIsCrawling] = useState(false);
@@ -16,10 +17,24 @@ const Index = () => {
   const [originalHtml, setOriginalHtml] = useState<string>("");
   const { toast } = useToast();
 
-  // Calculate modified HTML based on accepted suggestions
+  // Use edited suggestions when available, otherwise use original suggestions
+  const displayedSuggestions = useMemo(() => {
+    return suggestions.map(suggestion => {
+      const edited = editedSuggestions.get(suggestion.id);
+      return edited || suggestion;
+    });
+  }, [suggestions, editedSuggestions]);
+
+  // Calculate modified HTML based on accepted suggestions (using edited versions when available)
   const modifiedHtml = useMemo(() => {
-    return applyHtmlSuggestions(originalHtml, acceptedSuggestions);
-  }, [originalHtml, acceptedSuggestions]);
+    // Map through accepted suggestions and replace with edited versions if they exist
+    const acceptedWithEdits = acceptedSuggestions.map(suggestion => {
+      const edited = editedSuggestions.get(suggestion.id);
+      return edited || suggestion;
+    });
+    
+    return applyHtmlSuggestions(originalHtml, acceptedWithEdits);
+  }, [originalHtml, acceptedSuggestions, editedSuggestions]);
 
   const handleSubmit = async (formData: AuditFormData) => {
     if (!formData.page_url || !formData.goal) {
@@ -71,10 +86,35 @@ const Index = () => {
   // Handler for when a suggestion is accepted
   const handleSuggestionAccepted = (suggestion: Suggestion, isAccepted: boolean) => {
     if (isAccepted) {
-      setAcceptedSuggestions(prev => [...prev, suggestion]);
+      // If the suggestion has been edited, use the edited version when accepting
+      const suggestionToAdd = editedSuggestions.get(suggestion.id) || suggestion;
+      setAcceptedSuggestions(prev => [...prev, suggestionToAdd]);
     } else {
       setAcceptedSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
     }
+  };
+
+  // Handler for when a suggestion is edited
+  const handleSuggestionEdited = (editedSuggestion: Suggestion) => {
+    // Store the edited suggestion in the Map
+    setEditedSuggestions(prev => {
+      const newMap = new Map(prev);
+      newMap.set(editedSuggestion.id, editedSuggestion);
+      return newMap;
+    });
+    
+    // If this suggestion was already accepted, update its content in the accepted list too
+    if (acceptedSuggestions.some(s => s.id === editedSuggestion.id)) {
+      setAcceptedSuggestions(prev => 
+        prev.map(s => s.id === editedSuggestion.id ? editedSuggestion : s)
+      );
+    }
+
+    toast({
+      title: "Suggestion Updated",
+      description: "Your changes have been saved locally.",
+      duration: 3000,
+    });
   };
 
   return (
@@ -131,11 +171,12 @@ const Index = () => {
         <div className="mt-6">
           <h2 className="text-2xl font-semibold mb-4">Suggestions</h2>
           <div className="grid gap-4 md:grid-cols-2">
-            {suggestions.map((suggestion) => (
+            {displayedSuggestions.map((suggestion) => (
               <SuggestionCard 
                 key={suggestion.id} 
                 suggestion={suggestion} 
                 onAcceptToggle={(isAccepted) => handleSuggestionAccepted(suggestion, isAccepted)}
+                onEdit={handleSuggestionEdited}
               />
             ))}
           </div>

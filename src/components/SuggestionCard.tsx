@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check, RefreshCcw, Pencil, Save, X } from "lucide-react";
@@ -16,15 +16,22 @@ export type Suggestion = {
 type SuggestionCardProps = {
   suggestion: Suggestion;
   onAcceptToggle?: (isAccepted: boolean) => void;
+  onEdit?: (editedSuggestion: Suggestion) => void;
 };
 
-const SuggestionCard = ({ suggestion: initialSuggestion, onAcceptToggle }: SuggestionCardProps) => {
+const SuggestionCard = ({ suggestion: initialSuggestion, onAcceptToggle, onEdit }: SuggestionCardProps) => {
   const [suggestion, setSuggestion] = useState(initialSuggestion);
   const [isAccepted, setIsAccepted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [editedDescription, setEditedDescription] = useState(suggestion.description);
   const [isEditingInline, setIsEditingInline] = useState(false);
+
+  // Update editedDescription when initialSuggestion changes
+  useEffect(() => {
+    setSuggestion(initialSuggestion);
+    setEditedDescription(initialSuggestion.description);
+  }, [initialSuggestion]);
 
   const impactColors = {
     high: "bg-red-100 text-red-800",
@@ -44,10 +51,16 @@ const SuggestionCard = ({ suggestion: initialSuggestion, onAcceptToggle }: Sugge
   const handleEdit = () => {
     if (isEditing) {
       // Save the edited description
-      setSuggestion({
+      const updatedSuggestion = {
         ...suggestion,
         description: editedDescription,
-      });
+      };
+      setSuggestion(updatedSuggestion);
+      
+      // Notify parent component of the edit
+      if (onEdit && editedDescription !== initialSuggestion.description) {
+        onEdit(updatedSuggestion);
+      }
     }
     setIsEditing(!isEditing);
   };
@@ -65,12 +78,18 @@ const SuggestionCard = ({ suggestion: initialSuggestion, onAcceptToggle }: Sugge
       const newVariant = await fetchVariants(request);
       
       // Update the suggestion with the new variant
-      setSuggestion({
+      const updatedSuggestion = {
         ...suggestion,
         description: newVariant.description || suggestion.description,
-      });
+      };
       
+      setSuggestion(updatedSuggestion);
       setEditedDescription(newVariant.description || suggestion.description);
+      
+      // Notify parent component of the edit
+      if (onEdit && newVariant.description !== initialSuggestion.description) {
+        onEdit(updatedSuggestion);
+      }
     } catch (error) {
       console.error("Failed to regenerate suggestion:", error);
     } finally {
@@ -81,10 +100,16 @@ const SuggestionCard = ({ suggestion: initialSuggestion, onAcceptToggle }: Sugge
   const handleInlineEditToggle = () => {
     if (isEditingInline) {
       // Save changes when exiting inline edit mode
-      setSuggestion({
+      const updatedSuggestion = {
         ...suggestion,
         description: editedDescription,
-      });
+      };
+      setSuggestion(updatedSuggestion);
+      
+      // Notify parent component of the edit
+      if (onEdit && editedDescription !== initialSuggestion.description) {
+        onEdit(updatedSuggestion);
+      }
     } else {
       // Start with current description when entering edit mode
       setEditedDescription(suggestion.description);
