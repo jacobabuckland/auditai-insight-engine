@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from common.models import SuggestRequest, SuggestResponse
-from backend.gpt import call_gpt, build_prompt
+from ..gpt import call_gpt, build_prompt
 import json
 
 router = APIRouter()
