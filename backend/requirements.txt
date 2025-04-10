@@ -1,6 +1,6 @@
 fastapi
 uvicorn[standard]
 httpx
-openai
+openai>=1.0.0
 supabase
 playwright

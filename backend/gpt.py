@@ -1,27 +1,28 @@
 import os
-import openai
 import time
 import logging
 from typing import List
+from openai import OpenAI
+from openai.types.chat import ChatCompletionMessageParam
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 logger = logging.getLogger(__name__)
 
-def call_gpt(messages, model="gpt-4", temperature=0.7, retries=3):
+def call_gpt(messages: List[ChatCompletionMessageParam], model="gpt-4", temperature=0.7, retries=3) -> str:
     for attempt in range(retries):
         try:
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model=model,
                 messages=messages,
                 temperature=temperature,
             )
-            return response.choices[0].message["content"]
+            return response.choices[0].message.content
         except Exception as e:
             logger.warning(f"GPT call failed on attempt {attempt + 1}: {repr(e)}")
             time.sleep(2 * (attempt + 1))
     raise RuntimeError("GPT call failed after retries.")
 
-def build_prompt(html: str, goal: str) -> List[dict]:
+def build_prompt(html: str, goal: str) -> List[ChatCompletionMessageParam]:
     instructions_by_goal = {
         "increase add to cart": "Suggest changes that would encourage more users to add products to their cart.",
         "boost email signups": "Suggest changes that would make users more likely to sign up for email newsletters.",
@@ -29,6 +30,7 @@ def build_prompt(html: str, goal: str) -> List[dict]:
         "improve trust / social proof": "Suggest changes that build trust and credibility, such as trust badges, reviews, or testimonials."
     }
     instructions = instructions_by_goal.get(goal.lower(), "Suggest general improvements to increase user conversion.")
+    
     return [
         {"role": "system", "content": f"You are a CRO expert. {instructions}"},
         {"role": "user", "content": f"Here is the HTML of the page:\n{html[:5000]}"},
