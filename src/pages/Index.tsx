@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import AuditForm from "@/components/AuditForm";
 import SuggestionCard, { Suggestion } from "@/components/SuggestionCard";
@@ -5,6 +6,7 @@ import { fetchSuggestions, AuditFormData, crawlPage, applyHtmlSuggestions } from
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import PreviewPanel from "@/components/PreviewPanel";
+import Navigation from "@/components/Navigation";
 
 const Index = () => {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -118,7 +120,9 @@ const Index = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto px-4 py-4 max-w-6xl">
+      <Navigation />
+      
       <header className="mb-8 text-center">
         <h1 className="text-3xl font-bold mb-2">Audit a Page</h1>
         <p className="text-muted-foreground">

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import EmptyDashboard from "@/components/EmptyDashboard";
 import { useNavigate } from "react-router-dom";
+import Navigation from "@/components/Navigation";
 
 // Define the audit type
 type Audit = {
@@ -62,7 +63,9 @@ const AuditDashboardView = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-4 max-w-4xl">
+      <Navigation />
+      
       <header className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Your Audits</h1>
         <p className="text-muted-foreground">
