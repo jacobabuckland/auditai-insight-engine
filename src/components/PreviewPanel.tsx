@@ -3,9 +3,19 @@ import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Suggestion } from "@/services/auditService";
-import { ViewIcon, SlidersHorizontalIcon, CheckIcon, MaximizeIcon, PencilIcon, EyeIcon } from "lucide-react";
+import { 
+  ViewIcon, 
+  SlidersHorizontalIcon, 
+  CheckIcon, 
+  MaximizeIcon, 
+  PencilIcon, 
+  EyeIcon,
+  ToggleLeft,
+  ToggleRight 
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Switch } from "@/components/ui/switch";
 
 interface PreviewPanelProps {
   originalHtml: string;
@@ -72,9 +82,9 @@ const PreviewPanel = ({ originalHtml, acceptedSuggestions, modifiedHtml }: Previ
     } else {
       return (
         <iframe
-          srcDoc={savedHtml}
+          srcDoc={showingOriginal ? originalHtml : savedHtml}
           className="w-full h-[420px] border-0"
-          title="Modified Page"
+          title={showingOriginal ? "Original Page" : "Modified Page"}
           sandbox="allow-same-origin"
         ></iframe>
       );
@@ -87,14 +97,15 @@ const PreviewPanel = ({ originalHtml, acceptedSuggestions, modifiedHtml }: Previ
         <h3 className="text-lg font-semibold">Preview</h3>
         <div className="flex flex-col sm:flex-row gap-2">
           {viewMode === "full" && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowingOriginal(!showingOriginal)}
-            >
-              <ViewIcon size={16} className="mr-1" />
-              {showingOriginal ? "Show Modified" : "Show Original"}
-            </Button>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">Original</span>
+              <Switch 
+                id="version-toggle"
+                checked={!showingOriginal}
+                onCheckedChange={() => setShowingOriginal(!showingOriginal)}
+              />
+              <span className="text-sm text-gray-600">Modified</span>
+            </div>
           )}
           
           <ToggleGroup type="single" value={displayMode} onValueChange={(value) => value && setDisplayMode(value as "preview" | "edit")}>
