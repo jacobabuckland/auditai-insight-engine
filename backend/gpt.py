@@ -8,7 +8,7 @@ from openai.types.chat import ChatCompletionMessageParam
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 logger = logging.getLogger(__name__)
 
-def call_gpt(messages: List[ChatCompletionMessageParam], model="gpt-4", temperature=0.7, retries=3) -> str:
+def call_gpt(messages: List[ChatCompletionMessageParam], model="gpt-3.5-turbo", temperature=0.7, retries=3) -> str:
     for attempt in range(retries):
         try:
             response = client.chat.completions.create(
