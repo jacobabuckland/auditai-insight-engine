@@ -1,3 +1,4 @@
+
 import { toast } from "@/components/ui/use-toast";
 
 export type AuditFormData = {
@@ -22,6 +23,11 @@ export type CrawlResponse = {
   page_type?: string;
   screenshot_path?: string;
   html?: string;
+  url?: string;
+  title?: string;
+  headings?: string[];
+  ctas?: string[];
+  forms?: string[];
 };
 
 const API_BASE_URL = "https://auditai-insight-engine.onrender.com";
@@ -35,7 +41,7 @@ export async function crawlPage(url: string): Promise<CrawlResponse> {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ page_url: url }),
+      body: JSON.stringify({ url }),
     });
 
     if (!response.ok) {
@@ -44,7 +50,19 @@ export async function crawlPage(url: string): Promise<CrawlResponse> {
 
     const data = await response.json();
     console.log("Crawl response:", data);
-    return data;
+    
+    // Check if data has the expected PageData structure
+    if (data.url && data.title) {
+      return {
+        success: true,
+        page_type: data.page_type || "unknown",
+        screenshot_path: data.screenshot_url || "",
+        html: "", // The API doesn't currently return HTML
+        ...data
+      };
+    } else {
+      throw new Error("Invalid response format from crawl endpoint");
+    }
   } catch (error) {
     console.error("Failed to crawl page:", error);
     toast({
@@ -73,9 +91,8 @@ export async function fetchSuggestions(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ 
-        page_url: data.page_url,
-        goal: data.goal,
-        html: html 
+        html: html || "",
+        goal: data.goal
       }),
     });
 
@@ -83,9 +100,20 @@ export async function fetchSuggestions(
       throw new Error(`Error: ${response.status}`);
     }
 
-    const suggestions = await response.json();
-    console.log("Suggestions response:", suggestions);
-    return suggestions;
+    const result = await response.json();
+    console.log("Suggestions response:", result);
+    
+    // Format the suggestions to match our frontend model
+    if (result.suggestions && Array.isArray(result.suggestions)) {
+      return result.suggestions.map((s, index) => ({
+        id: `suggestion-${index}`,
+        title: s.text || "Suggestion",
+        description: `${s.type} - ${s.impact}: ${s.target}`,
+        impact: (s.impact || "medium").toLowerCase() as "high" | "medium" | "low"
+      }));
+    }
+    
+    return [];
   } catch (error) {
     console.error("Failed to fetch suggestions:", error);
     toast({

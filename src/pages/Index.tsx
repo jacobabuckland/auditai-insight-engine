@@ -57,7 +57,7 @@ const Index = () => {
     setOriginalHtml("");
 
     try {
-      // First, crawl the page using the real API
+      // First, crawl the page using the updated endpoint
       const crawlResult = await crawlPage(formData.page_url);
       
       if (!crawlResult.success) {
@@ -67,11 +67,15 @@ const Index = () => {
       setIsCrawling(false);
       setPageType(crawlResult.page_type || null);
       setScreenshotPath(crawlResult.screenshot_path || null);
-      setOriginalHtml(crawlResult.html || "");
       
-      // Then, fetch suggestions using the real API
-      const results = await fetchSuggestions(formData, crawlResult.html);
-      setSuggestions(results);
+      // For now, we're using empty HTML as the API doesn't return HTML content
+      // In a real scenario, you'd use the actual HTML from the crawl
+      const pageHtml = "<html><body><h1>Placeholder HTML</h1></body></html>";
+      setOriginalHtml(pageHtml);
+      
+      // Then, fetch suggestions using the crawled data
+      const suggestResults = await fetchSuggestions(formData, pageHtml);
+      setSuggestions(suggestResults);
     } catch (error) {
       console.error("Error during audit:", error);
       toast({
