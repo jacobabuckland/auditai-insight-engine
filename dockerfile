@@ -30,18 +30,19 @@ RUN apt-get update && apt-get install -y \
     libglu1-mesa \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy project files
-COPY . .
-
-# Install Python dependencies from backend
+# Copy requirements and install
+COPY requirements.txt .
 RUN pip install --upgrade pip
-RUN pip install -r backend/requirements.txt
+RUN pip install -r requirements.txt
+
+# Copy project files
+COPY backend backend
 
 # Install Playwright browsers
 RUN playwright install --with-deps
 
-# Expose the port your app runs on
+# Expose the port
 EXPOSE 10000
 
-# Run the app (adjust if your main file path is different)
+# Run the app
 CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "10000"]
