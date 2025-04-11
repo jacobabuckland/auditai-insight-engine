@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routes import suggest, crawl, debug_suggest, test_gpt
+from backend.common.models import SuggestRequest, SuggestResponse
 
 app = FastAPI()
 
