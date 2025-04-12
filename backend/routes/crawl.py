@@ -1,8 +1,8 @@
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from common.models import CrawlRequest, PageData
-from common.scraper import scrape_page
+from backend.common.models import CrawlRequest, PageData
+from backend.common.scraper import scrape_page
 import logging
 import traceback
 
