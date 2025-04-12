@@ -6,12 +6,17 @@ import { Check, RefreshCcw, Pencil, Save, X, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { fetchVariants, VariantRequest } from "@/services/auditService";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/hooks/use-toast";
+import SuggestionTag, { tagOptions } from "./SuggestionTag";
 
 export type Suggestion = {
   id: string;
   title: string;
   description: string;
   impact: "high" | "medium" | "low";
+  tags?: string[];
+  isEdited?: boolean;
 };
 
 type SuggestionCardProps = {
@@ -19,6 +24,7 @@ type SuggestionCardProps = {
   onAcceptToggle?: (isAccepted: boolean) => void;
   onEdit?: (editedSuggestion: Suggestion) => void;
   onReject?: (isRejected: boolean) => void;
+  onTagToggle?: (suggestionId: string, tagId: string) => void;
   isRejected?: boolean;
 };
 
@@ -27,6 +33,7 @@ const SuggestionCard = ({
   onAcceptToggle, 
   onEdit, 
   onReject,
+  onTagToggle,
   isRejected = false
 }: SuggestionCardProps) => {
   const [suggestion, setSuggestion] = useState(initialSuggestion);
@@ -36,6 +43,7 @@ const SuggestionCard = ({
   const [editedDescription, setEditedDescription] = useState(suggestion.description);
   const [isEditingInline, setIsEditingInline] = useState(false);
   const [showRationale, setShowRationale] = useState(false);
+  const [showTagOptions, setShowTagOptions] = useState(false);
 
   // Update editedDescription when initialSuggestion changes
   useEffect(() => {
@@ -112,8 +120,18 @@ const SuggestionCard = ({
       if (onEdit && newVariant.description !== initialSuggestion.description) {
         onEdit(updatedSuggestion);
       }
+
+      toast({
+        title: "Success!",
+        description: "Suggestion has been regenerated",
+      });
     } catch (error) {
       console.error("Failed to regenerate suggestion:", error);
+      toast({
+        title: "Error",
+        description: "Failed to regenerate suggestion",
+        variant: "destructive",
+      });
     } finally {
       setIsRegenerating(false);
     }
@@ -125,12 +143,17 @@ const SuggestionCard = ({
       const updatedSuggestion = {
         ...suggestion,
         description: editedDescription,
+        isEdited: true
       };
       setSuggestion(updatedSuggestion);
       
       // Notify parent component of the edit
       if (onEdit && editedDescription !== initialSuggestion.description) {
         onEdit(updatedSuggestion);
+        toast({
+          title: "Success!",
+          description: "Your edits have been saved",
+        });
       }
     } else {
       // Start with current description when entering edit mode
@@ -150,6 +173,16 @@ const SuggestionCard = ({
 
   const handleToggleRationale = () => {
     setShowRationale(!showRationale);
+  };
+
+  const handleTagToggle = (tagId: string) => {
+    if (onTagToggle) {
+      onTagToggle(suggestion.id, tagId);
+    }
+  };
+
+  const toggleTagOptions = () => {
+    setShowTagOptions(!showTagOptions);
   };
 
   return (
@@ -197,12 +230,13 @@ const SuggestionCard = ({
           />
         ) : isEditingInline ? (
           <div className="relative">
-            <textarea
+            <Textarea
               className="w-full border rounded-md p-2 text-sm text-gray-600 focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
               value={editedDescription}
               onChange={handleInlineDescriptionChange}
               rows={3}
               autoFocus
+              placeholder="Edit your suggestion here..."
             />
             <div className="flex mt-2 space-x-2 justify-end">
               <Button 
@@ -224,19 +258,49 @@ const SuggestionCard = ({
             </div>
           </div>
         ) : (
-          <CardDescription 
-            className="text-sm text-gray-600 relative group"
-            onClick={!isRejected && !isAccepted ? handleInlineEditToggle : undefined}
-          >
-            {suggestion.description}
-            {!isRejected && !isAccepted && (
-              <span className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                  <Pencil size={14} />
-                </Button>
-              </span>
+          <div className="space-y-2">
+            <CardDescription 
+              className="text-sm text-gray-600 relative group"
+              onClick={!isRejected && !isAccepted ? handleInlineEditToggle : undefined}
+            >
+              {suggestion.description}
+              {!isRejected && !isAccepted && (
+                <span className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                    <Pencil size={14} />
+                  </Button>
+                </span>
+              )}
+            </CardDescription>
+            
+            {/* Tags display area */}
+            {suggestion.tags && suggestion.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {suggestion.tags.map(tagId => (
+                  <SuggestionTag 
+                    key={tagId} 
+                    tagId={tagId} 
+                    isSelected={true} 
+                    onToggle={handleTagToggle} 
+                  />
+                ))}
+              </div>
             )}
-          </CardDescription>
+
+            {/* Tag selection area */}
+            {showTagOptions && (
+              <div className="flex flex-wrap gap-2 mt-2 p-2 bg-gray-50 rounded-md">
+                {tagOptions.map(tag => (
+                  <SuggestionTag 
+                    key={tag.id} 
+                    tagId={tag.id} 
+                    isSelected={suggestion.tags?.includes(tag.id) || false} 
+                    onToggle={handleTagToggle} 
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         )}
         
         <Collapsible open={showRationale} onOpenChange={setShowRationale}>
@@ -258,7 +322,7 @@ const SuggestionCard = ({
           </div>
         </Collapsible>
         
-        <div className="flex mt-4 space-x-2">
+        <div className="flex flex-wrap gap-2 mt-4">
           <Button 
             variant={isAccepted ? "default" : "outline"}
             size="sm" 
@@ -298,6 +362,14 @@ const SuggestionCard = ({
           >
             <Pencil size={16} className="mr-1" />
             {isEditing ? 'Save' : 'Edit'}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleTagOptions}
+            className="border-gray-200 ml-auto"
+          >
+            {showTagOptions ? 'Hide Tags' : 'Add Tags'}
           </Button>
         </div>
       </CardContent>

@@ -7,7 +7,25 @@ import SuggestionCard, { Suggestion } from "@/components/SuggestionCard";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ExternalLink, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { 
+  ExternalLink, 
+  Clock, 
+  Download, 
+  RefreshCcw, 
+  CheckCheck, 
+  Loader2 
+} from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 // Mock data - replace with actual API response
 const mockAuditData = {
@@ -24,6 +42,7 @@ const mockAuditData = {
       type: "Design",
       target: ".cta-button",
       impact: "high" as const,
+      tags: [],
     },
     {
       id: "suggestion-2",
@@ -32,6 +51,7 @@ const mockAuditData = {
       type: "Copy",
       target: "#email-signup-form",
       impact: "medium" as const,
+      tags: [],
     },
     {
       id: "suggestion-3",
@@ -40,6 +60,7 @@ const mockAuditData = {
       type: "Copy",
       target: ".product-description",
       impact: "medium" as const,
+      tags: [],
     },
     {
       id: "suggestion-4",
@@ -48,6 +69,7 @@ const mockAuditData = {
       type: "Design",
       target: ".checkout-button",
       impact: "high" as const,
+      tags: [],
     },
   ],
   rationale: "This page has several areas for optimization based on heatmap analysis and competitor benchmarking. The suggestions focus on improving trust signals and capturing more email signups."
@@ -59,6 +81,9 @@ const SuggestionReview = () => {
   const [acceptedSuggestions, setAcceptedSuggestions] = useState<string[]>([]);
   const [rejectedSuggestions, setRejectedSuggestions] = useState<string[]>([]);
   const [editedSuggestions, setEditedSuggestions] = useState<Map<string, Suggestion>>(new Map());
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isFinalized, setIsFinalized] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Handle suggestion status change
   const handleSuggestionAccepted = (suggestionId: string, isAccepted: boolean) => {
@@ -86,6 +111,121 @@ const SuggestionReview = () => {
       const newMap = new Map(prev);
       newMap.set(editedSuggestion.id, editedSuggestion);
       return newMap;
+    });
+  };
+
+  // Handle tag toggle
+  const handleTagToggle = (suggestionId: string, tagId: string) => {
+    // Get the current suggestion
+    const suggestionIndex = auditData.suggestions.findIndex(s => s.id === suggestionId);
+    if (suggestionIndex === -1) return;
+    
+    const suggestion = 
+      editedSuggestions.get(suggestionId) || 
+      {...auditData.suggestions[suggestionIndex]};
+    
+    // Toggle the tag
+    const tags = suggestion.tags || [];
+    const updatedTags = tags.includes(tagId)
+      ? tags.filter(t => t !== tagId)
+      : [...tags, tagId];
+    
+    // Update the suggestion
+    const updatedSuggestion = {
+      ...suggestion,
+      tags: updatedTags
+    };
+    
+    // Update the edited suggestions map
+    setEditedSuggestions(prev => {
+      const newMap = new Map(prev);
+      newMap.set(suggestionId, updatedSuggestion);
+      return newMap;
+    });
+  };
+
+  // Export accepted suggestions
+  const handleExportSuggestions = () => {
+    const suggestions = auditData.suggestions.filter(s => 
+      acceptedSuggestions.includes(s.id)
+    ).map(s => {
+      const edited = editedSuggestions.get(s.id);
+      return edited || s;
+    });
+    
+    const exportData = {
+      url: auditData.url,
+      goal: auditData.goal,
+      timestamp: auditData.timestamp,
+      suggestions
+    };
+    
+    // Create a blob and download it
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.download = `audit-suggestions-${format(new Date(), "yyyy-MM-dd")}.json`;
+    link.href = url;
+    link.click();
+    
+    toast({
+      title: "Export Successful",
+      description: "Your accepted suggestions have been exported as JSON"
+    });
+  };
+
+  // Regenerate suggestions
+  const handleRegenerateSuggestions = async () => {
+    setIsRegenerating(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Update with "new" suggestions (just for demo)
+      const updatedSuggestions = [...auditData.suggestions];
+      updatedSuggestions[0] = {
+        ...updatedSuggestions[0],
+        description: "Adding trust badges and customer testimonials near the Call-to-Action can significantly boost conversion rates by establishing credibility."
+      };
+      
+      setAuditData({
+        ...auditData,
+        suggestions: updatedSuggestions
+      });
+      
+      // Clear previously accepted/rejected states
+      setAcceptedSuggestions([]);
+      setRejectedSuggestions([]);
+      setEditedSuggestions(new Map());
+      
+      toast({
+        title: "Suggestions Regenerated",
+        description: "Fresh AI suggestions are now available for review"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to regenerate suggestions",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
+  // Finalize audit
+  const handleFinalizeAudit = () => {
+    setIsFinalized(true);
+    setAuditData({
+      ...auditData,
+      status: "Reviewed"
+    });
+    setIsDialogOpen(false);
+    
+    toast({
+      title: "Audit Finalized",
+      description: "Your audit has been marked as reviewed and ready for implementation"
     });
   };
 
@@ -231,10 +371,78 @@ const SuggestionReview = () => {
                 onAcceptToggle={(isAccepted) => handleSuggestionAccepted(suggestion.id, isAccepted)}
                 onRejectToggle={(isRejected) => handleSuggestionRejected(suggestion.id, isRejected)}
                 onEdit={handleSuggestionEdited}
-                isEdited={!!editedSuggestion}
+                onTagToggle={(tagId) => handleTagToggle(suggestion.id, tagId)}
+                isEdited={!!editedSuggestion?.isEdited}
               />
             );
           })}
+        </div>
+      </div>
+
+      {/* Footer Action Buttons */}
+      <div className="border-t pt-6 pb-10 mt-8">
+        <div className="flex flex-wrap justify-between items-center gap-4">
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={handleExportSuggestions}
+            disabled={acceptedSuggestions.length === 0}
+          >
+            <Download size={16} />
+            Export Accepted Suggestions
+          </Button>
+          
+          <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              className="gap-2"
+              onClick={handleRegenerateSuggestions}
+              disabled={isRegenerating || isFinalized}
+            >
+              {isRegenerating ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <RefreshCcw size={16} />
+              )}
+              {isRegenerating ? "Regenerating..." : "Regenerate Suggestions"}
+            </Button>
+            
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="default"
+                  className="gap-2"
+                  disabled={acceptedSuggestions.length === 0 || isFinalized}
+                >
+                  <CheckCheck size={16} />
+                  {isFinalized ? "Audit Finalized" : "Mark Audit as Finalized"}
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Finalize Audit</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to mark this audit as finalized? 
+                    This will lock all suggestions and prepare them for implementation.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="gap-2 sm:justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="default"
+                    onClick={handleFinalizeAudit}
+                  >
+                    Yes, Finalize Audit
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </div>
     </div>
@@ -249,6 +457,7 @@ type SuggestionCardWithMetadataProps = {
   onAcceptToggle: (isAccepted: boolean) => void;
   onRejectToggle: (isRejected: boolean) => void;
   onEdit: (editedSuggestion: Suggestion) => void;
+  onTagToggle: (tagId: string) => void;
   isEdited: boolean;
 };
 
@@ -260,6 +469,7 @@ const SuggestionCardWithMetadata = ({
   onAcceptToggle,
   onRejectToggle,
   onEdit,
+  onTagToggle,
   isEdited,
 }: SuggestionCardWithMetadataProps) => {
   return (
@@ -274,7 +484,7 @@ const SuggestionCardWithMetadata = ({
         <span className="text-xs text-gray-500">{target}</span>
         {isEdited && (
           <Badge variant="outline" className="ml-auto bg-purple-50 text-purple-800">
-            Edited
+            Edited by user
           </Badge>
         )}
       </div>
@@ -290,6 +500,7 @@ const SuggestionCardWithMetadata = ({
           onRejectToggle(isRejected);
           if (isRejected) onAcceptToggle(false);
         }}
+        onTagToggle={onTagToggle}
         isRejected={status === 'rejected'}
       />
     </div>
