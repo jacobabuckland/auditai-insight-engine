@@ -1,8 +1,15 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { HomeIcon, LayoutDashboardIcon } from "lucide-react";
+import { HomeIcon, LayoutDashboardIcon, SettingsIcon, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const Navigation = () => {
   return (
@@ -12,19 +19,42 @@ const Navigation = () => {
           <span className="text-primary">AuditAI</span>
         </Link>
       </div>
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" asChild>
-          <Link to="/" className="flex items-center gap-1">
-            <HomeIcon size={16} />
-            <span>Home</span>
-          </Link>
-        </Button>
-        <Button variant="ghost" size="sm" asChild>
-          <Link to="/dashboard" className="flex items-center gap-1">
-            <LayoutDashboardIcon size={16} />
-            <span>Dashboard</span>
-          </Link>
-        </Button>
+      <div className="flex items-center gap-4">
+        <div className="hidden sm:flex items-center gap-2">
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/" className="flex items-center gap-1">
+              <HomeIcon size={16} />
+              <span>Home</span>
+            </Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/dashboard" className="flex items-center gap-1">
+              <LayoutDashboardIcon size={16} />
+              <span>Dashboard</span>
+            </Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/settings" className="flex items-center gap-1">
+              <SettingsIcon size={16} />
+              <span>Settings</span>
+            </Link>
+          </Button>
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback>US</AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </nav>
   );

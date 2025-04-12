@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import AuditDashboard from "./pages/AuditDashboard";
 import Login from "./pages/Login";
 import ShopifyAuth from "./pages/ShopifyAuth";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<AuditDashboard />} />
           <Route path="/shopify-auth" element={<ShopifyAuth />} />
+          <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

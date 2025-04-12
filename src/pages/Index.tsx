@@ -146,7 +146,7 @@ const Index = () => {
       <header className="mb-8 text-center">
         <h1 className="text-3xl font-bold mb-2">Audit a Page</h1>
         <p className="text-muted-foreground">
-          Enter a URL and optimization goal to get CRO suggestions
+          Enter a URL or select a page from your Shopify store
         </p>
       </header>
 
