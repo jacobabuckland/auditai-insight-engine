@@ -1,3 +1,4 @@
+
 import { toast } from "@/components/ui/use-toast";
 
 export type AuditFormData = {
@@ -39,7 +40,8 @@ export type SuggestResponse = {
   }>;
 };
 
-const API_BASE_URL = "https://auditai-insight-engine.onrender.com";
+// Update the API base URL to use the live preview URL
+const API_BASE_URL = "https://preview--auditai-insight-engine.lovable.app";
 
 export async function crawlPage(url: string): Promise<CrawlResponse> {
   try {

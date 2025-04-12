@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import PreviewPanel from "@/components/PreviewPanel";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 const Index = () => {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -19,6 +21,7 @@ const Index = () => {
   const [screenshotPath, setScreenshotPath] = useState<string | null>(null);
   const [originalHtml, setOriginalHtml] = useState<string>("");
   const [rationale, setRationale] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Use edited suggestions when available, otherwise use original suggestions
@@ -50,6 +53,7 @@ const Index = () => {
       return;
     }
 
+    // Reset states
     setIsCrawling(true);
     setIsLoading(true);
     setSuggestions([]);
@@ -58,13 +62,14 @@ const Index = () => {
     setScreenshotPath(null);
     setOriginalHtml("");
     setRationale("");
+    setError(null);
 
     try {
-      // First, crawl the page using the updated endpoint
+      // First, crawl the page
       const crawlResult = await crawlPage(formData.page_url);
       
       if (!crawlResult.success) {
-        throw new Error("Crawling failed");
+        throw new Error("Crawling failed. Please check the URL and try again.");
       }
       
       setIsCrawling(false);
@@ -75,15 +80,23 @@ const Index = () => {
       const pageHtml = crawlResult.html || "<html><body><h1>No HTML content available</h1></body></html>";
       setOriginalHtml(pageHtml);
       
-      // Then, fetch suggestions using the crawled data
+      // Then, fetch suggestions using the crawled HTML and goal
       const suggestResults = await fetchSuggestions(formData, pageHtml);
       setSuggestions(suggestResults.suggestions);
       setRationale(suggestResults.rationale);
+      
+      if (suggestResults.suggestions.length === 0) {
+        toast({
+          title: "Notice",
+          description: "No suggestions were generated. Try a different URL or goal.",
+        });
+      }
     } catch (error) {
       console.error("Error during audit:", error);
+      setError(error instanceof Error ? error.message : "Something went wrong. Please try again.");
       toast({
         title: "Error",
-        description: "Something went wrong. Please try again.",
+        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -140,6 +153,14 @@ const Index = () => {
       <div className="mb-10">
         <AuditForm onSubmit={handleSubmit} isLoading={isLoading || isCrawling} />
       </div>
+
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       {(isLoading || isCrawling) && (
         <div className="flex flex-col justify-center items-center py-12">
@@ -202,7 +223,7 @@ const Index = () => {
         </div>
       )}
 
-      {!isLoading && !isCrawling && suggestions.length === 0 && !originalHtml && (
+      {!isLoading && !isCrawling && suggestions.length === 0 && !originalHtml && !error && (
         <div className="text-center py-10 text-muted-foreground">
           Submit the form to get optimization suggestions
         </div>
