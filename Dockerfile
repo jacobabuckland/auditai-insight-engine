@@ -20,7 +20,7 @@ RUN pip install --upgrade pip && pip install playwright && python -m playwright 
 
 # Copy only backend and shared code
 COPY backend/ ./backend/
-COPY common/ ./common/
+COPY backend/common/ ./backend/common/
 
 # Install Python dependencies
 RUN pip install -r backend/requirements.txt
