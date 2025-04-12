@@ -5,7 +5,10 @@ from typing import List
 from openai import OpenAI
 from openai.types.chat import ChatCompletionMessageParam
 
+# Set up OpenAI client using environment variable
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# Logger setup
 logger = logging.getLogger(__name__)
 
 def call_gpt(messages: List[ChatCompletionMessageParam], model="gpt-3.5-turbo", temperature=0.7, retries=3) -> str:
@@ -16,7 +19,10 @@ def call_gpt(messages: List[ChatCompletionMessageParam], model="gpt-3.5-turbo", 
                 messages=messages,
                 temperature=temperature,
             )
-            return response.choices[0].message.content
+            content = response.choices[0].message.content
+            if not content:
+                raise ValueError("No content returned from GPT")
+            return content
         except Exception as e:
             logger.warning(f"GPT call failed on attempt {attempt + 1}: {repr(e)}")
             time.sleep(2 * (attempt + 1))
@@ -29,14 +35,18 @@ def build_prompt(html: str, goal: str) -> List[ChatCompletionMessageParam]:
         "drive product views": "Suggest changes that help users discover and explore products more easily.",
         "improve trust / social proof": "Suggest changes that build trust and credibility, such as trust badges, reviews, or testimonials."
     }
+
     instructions = instructions_by_goal.get(goal.lower(), "Suggest general improvements to increase user conversion.")
-    
+
     return [
         {"role": "system", "content": f"You are a CRO expert. {instructions}"},
         {"role": "user", "content": f"Here is the HTML of the page:\n{html[:5000]}"},
         {"role": "system", "content": (
-            "ONLY respond in valid JSON. Do not use markdown or commentary. Wrap your response like this:\n"
-            "```json\n{\"rationale\": string, \"suggestions\": [{\"text\": string, \"type\": string, \"target\": string, \"impact\": string}]}\n```"
-            "\nFill in realistic suggestion values for the page above."
+            "ONLY respond in valid JSON. Do not use markdown or commentary. "
+            "Wrap your response like this:\n"
+            "{\"rationale\": string, \"suggestions\": ["
+            "{\"text\": string, \"type\": string, \"target\": string, \"impact\": string}"
+            "]}\n"
+            "Fill in realistic suggestion values for the page above."
         )}
     ]

@@ -1,6 +1,6 @@
-fastapi
-uvicorn[standard]
-httpx
-openai>=1.0.0
-supabase
-playwright
+fastapi==0.115.0
+uvicorn[standard]==0.34.0
+httpx==0.28.1
+openai>=1.0.0,<2.0.0
+supabase==2.15.0
+playwright==1.51.0

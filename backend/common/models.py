@@ -1,11 +1,11 @@
-from pydantic import BaseModel
-from typing import List
+from pydantic import BaseModel, Field
+from typing import List, Optional, Literal
 
 class Suggestion(BaseModel):
     text: str
-    type: str
+    type: Literal["copy", "layout", "module"]
     target: str
-    impact: str
+    impact: Literal["low", "medium", "high"]
 
 class SuggestResponse(BaseModel):
     rationale: str
@@ -13,18 +13,18 @@ class SuggestResponse(BaseModel):
 
 class SuggestRequest(BaseModel):
     html: str
-    goal: str
+    goal: str = Field(..., example="increase add to cart")
 
 # 👇 Models used for /crawl endpoint
 class CrawlRequest(BaseModel):
-    url: str
+    url: str = Field(..., example="https://example.com")
 
 class PageData(BaseModel):
     url: str
     title: str
-    html: str                  # ✅ Added this line
+    html: str
     headings: List[str]
     ctas: List[str]
     forms: List[str]
-    page_type: str
-    screenshot_url: str
+    page_type: Literal["home", "product", "category", "cart", "unknown"]
+    screenshot_url: Optional[str] = None
