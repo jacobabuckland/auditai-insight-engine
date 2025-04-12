@@ -1,51 +1,50 @@
-# Use official Python image
-FROM python:3.11-slim
+  # Use official Python image
+  FROM python:3.11-slim
 
-# Set environment variable to avoid prompts
-ENV DEBIAN_FRONTEND=noninteractive
+  # Set working directory
+  WORKDIR /app
 
-# Set working directory
-WORKDIR /app
+  # Install system dependencies required by Playwright
+  RUN apt-get update && apt-get install -y \
+      wget \
+      gnupg \
+      curl \
+      ca-certificates \
+      fonts-liberation \
+      libappindicator3-1 \
+      libasound2 \
+      libatk-bridge2.0-0 \
+      libatk1.0-0 \
+      libcups2 \
+      libdbus-1-3 \
+      libgdk-pixbuf2.0-0 \
+      libnspr4 \
+      libnss3 \
+      libx11-xcb1 \
+      libxcomposite1 \
+      libxdamage1 \
+      libxrandr2 \
+      xdg-utils \
+      && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install system dependencies for Playwright
-RUN apt-get update && apt-get install -y \
-    wget \
-    gnupg \
-    curl \
-    libnss3 \
-    libatk-bridge2.0-0 \
-    libgtk-3-0 \
-    libxss1 \
-    libasound2 \
-    libgbm-dev \
-    libxshmfence-dev \
-    libxcomposite1 \
-    libxrandr2 \
-    libdrm2 \
-    libxdamage1 \
-    libxext6 \
-    libxfixes3 \
-    libpci3 \
-    libxcb1 \
-    libpangocairo-1.0-0 \
-    libpango-1.0-0 \
-    libcups2 \
-    libx11-xcb1 \
-    libglu1-mesa \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+  # Install Node.js (required for Playwright)
+  RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
+      apt-get install -y nodejs && \
+      apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy project files
-COPY . .
+  # Install Playwright
+  RUN npm install -g playwright && \
+      playwright install --with-deps
 
-# Upgrade pip and install backend Python dependencies
-RUN pip install --upgrade pip
-RUN pip install -r backend/requirements.txt
+  # Copy project files
+  COPY . .
 
-# Install Playwright for Python and its dependencies
-RUN python -m playwright install --with-deps
+  # Install Python dependencies from backend
+  RUN pip install --upgrade pip
+  RUN pip install -r backend/requirements.txt
 
-# Expose the port
-EXPOSE 10000
+  # Expose the port your app runs on
+  EXPOSE 10000
 
-# Run the app
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "10000"]
+  # Run the app
+  CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "10000"]
