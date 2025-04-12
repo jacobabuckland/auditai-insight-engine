@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from common.models import SuggestRequest, SuggestResponse
+from backend.common.models import SuggestRequest, SuggestResponse
 from gpt import call_gpt, build_prompt
 import json
 

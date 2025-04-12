@@ -3,7 +3,6 @@ FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
-ENV PYTHONPATH="${PYTHONPATH}:/app"
 
 # Install system dependencies required by Playwright
 RUN apt-get update && apt-get install -y \
@@ -31,18 +30,17 @@ RUN apt-get update && apt-get install -y \
     libglu1-mesa \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install
-COPY backend/requirements.txt ./requirements.txt
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
-
 # Copy project files
-COPY backend backend
+COPY . .
+
+# Install Python dependencies from backend
+RUN pip install --upgrade pip
+RUN pip install -r backend/requirements.txt
 
 # Install Playwright browsers
 RUN playwright install --with-deps
 
-# Expose the port
+# Expose the port your app runs on
 EXPOSE 10000
 
 # Run the app

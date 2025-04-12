@@ -1,6 +1,10 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.common.models import SuggestRequest, SuggestResponse
+from backend.routes import suggest, crawl, debug_suggest, test_gpt
 
 app = FastAPI()
 
