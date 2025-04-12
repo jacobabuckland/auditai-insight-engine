@@ -1,6 +1,6 @@
 from fastapi import APIRouter
+from backend.gpt import call_gpt, build_prompt
 from backend.common.models import SuggestRequest, SuggestResponse
-from gpt import call_gpt, build_prompt
 import json
 
 router = APIRouter()
@@ -11,9 +11,9 @@ async def suggest_cro_ideas(request: SuggestRequest):
         prompt = build_prompt(request.html, request.goal)
         gpt_response = call_gpt(prompt)
 
-        # Extract JSON from GPT response (strip markdown if needed)
+        # Clean GPT output (in case it's wrapped in markdown)
         if gpt_response.startswith("```json"):
-            gpt_response = gpt_response.strip("```json").strip("```").strip()
+            gpt_response = gpt_response.replace("```json", "").replace("```", "").strip()
 
         parsed = json.loads(gpt_response)
         return SuggestResponse(**parsed)
