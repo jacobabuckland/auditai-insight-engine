@@ -27,7 +27,9 @@ def scrape_page(url: str) -> dict:
             "forms": forms,
             "page_type": "unknown",     # Optional placeholder
             "screenshot_url": ""        # Optional placeholder
-            "page_type": "unknown",  # optional placeholder
+            return {
+    "page_type": "unknown",  # line 30
+}
             "screenshot_url": "",    # optional placeholder
             "html": html_content,    # Include the page's HTML content
         }
