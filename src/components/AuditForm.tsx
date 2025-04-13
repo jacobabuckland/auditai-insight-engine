@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -18,14 +17,12 @@ import {
   FormLabel,
   FormDescription,
 } from "@/components/ui/form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 
 export type AuditFormValues = {
   page_url: string;
   goal: string;
-  source_type: "manual" | "shopify";
-  shopify_page?: string;
+  shopify_page: string;
 };
 
 type AuditFormProps = {
@@ -40,33 +37,28 @@ const GOALS = [
   "Improve Trust / Social Proof",
 ];
 
-const MOCK_SHOPIFY_PAGES = [
+const SHOPIFY_PAGES = [
   { label: "Homepage", value: "https://yourstore.myshopify.com/" },
   { label: "Collections Page", value: "https://yourstore.myshopify.com/collections/all" },
-  { label: "Product Page", value: "https://yourstore.myshopify.com/products/hoodie" },
+  { label: "Product Page", value: "https://yourstore.myshopify.com/products/sample-product" },
   { label: "Cart Page", value: "https://yourstore.myshopify.com/cart" },
+  { label: "Checkout", value: "https://yourstore.myshopify.com/checkout" },
+  { label: "Blog", value: "https://yourstore.myshopify.com/blogs/news" },
+  { label: "Contact Us", value: "https://yourstore.myshopify.com/pages/contact" },
+  { label: "About Us", value: "https://yourstore.myshopify.com/pages/about" },
 ];
 
 const AuditForm = ({ onSubmit, isLoading }: AuditFormProps) => {
-  const [sourceType, setSourceType] = useState<"manual" | "shopify">("manual");
-
   const form = useForm<AuditFormValues>({
     defaultValues: {
-      page_url: "",
+      shopify_page: "",
       goal: "",
-      source_type: "manual",
     },
   });
 
   const handleSubmit = (data: AuditFormValues) => {
-    // Add the source type to the form data
-    data.source_type = sourceType;
-    
-    // If using Shopify selector, use the selected page URL
-    if (sourceType === "shopify" && data.shopify_page) {
-      data.page_url = data.shopify_page;
-    }
-    
+    // Use the selected Shopify page as the page_url
+    data.page_url = data.shopify_page;
     onSubmit(data);
   };
 
@@ -76,68 +68,36 @@ const AuditForm = ({ onSubmit, isLoading }: AuditFormProps) => {
         onSubmit={form.handleSubmit(handleSubmit)}
         className="space-y-6 w-full max-w-md mx-auto"
       >
-        <Tabs
-          defaultValue="manual"
-          onValueChange={(value) => setSourceType(value as "manual" | "shopify")}
-          className="w-full"
-        >
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="manual">Manual URL</TabsTrigger>
-            <TabsTrigger value="shopify">Shopify Page</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="manual" className="space-y-4">
-            <FormField
-              control={form.control}
-              name="page_url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Page URL</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="https://yourstore.com/"
-                      {...field}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </TabsContent>
-          
-          <TabsContent value="shopify" className="space-y-4">
-            <FormField
-              control={form.control}
-              name="shopify_page"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Select Page</FormLabel>
-                  <Select
-                    disabled={isLoading}
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a page from your store" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {MOCK_SHOPIFY_PAGES.map((page) => (
-                        <SelectItem key={page.value} value={page.value}>
-                          {page.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Choose a page from your connected Shopify store.
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
-          </TabsContent>
-        </Tabs>
+        <FormField
+          control={form.control}
+          name="shopify_page"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Select Page</FormLabel>
+              <Select
+                disabled={isLoading}
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a page from your store" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className="bg-white">
+                  {SHOPIFY_PAGES.map((page) => (
+                    <SelectItem key={page.value} value={page.value}>
+                      {page.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Choose a page from your Shopify store to audit.
+              </FormDescription>
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
@@ -155,7 +115,7 @@ const AuditForm = ({ onSubmit, isLoading }: AuditFormProps) => {
                     <SelectValue placeholder="What is your CRO goal?" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   {GOALS.map((goal) => (
                     <SelectItem key={goal} value={goal}>
                       {goal}

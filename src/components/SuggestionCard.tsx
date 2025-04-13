@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Suggestion } from "@/services/auditService";
@@ -15,7 +16,6 @@ const tags = [
   { id: "tag3", label: "Tag 3", active: false },
 ];
 
-// Fix the onTagToggle call in the component to pass both parameters
 export default function SuggestionCard({ suggestion, onTagToggle }: SuggestionCardProps) {
   return (
     <Card className="mb-4">
@@ -29,10 +29,10 @@ export default function SuggestionCard({ suggestion, onTagToggle }: SuggestionCa
         {tags.map((tag) => (
           <SuggestionTag
             key={tag.id}
-            id={tag.id}
+            tagId={tag.id}
             label={tag.label}
             active={tag.active}
-            onClick={() => onTagToggle(suggestion.id, tag.id)} // Pass both suggestion.id and tag.id
+            onClick={() => onTagToggle(suggestion.id, tag.id)}
           />
         ))}
       </div>
