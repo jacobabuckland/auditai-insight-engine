@@ -1,11 +1,10 @@
 
-import { useEffect } from "react";
+import { json } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 import { 
   Page,
   TitleBar
 } from "@shopify/polaris";
-import { json } from "@remix-run/node";
-import { useLoaderData, useRouteLoaderData } from "@remix-run/react";
 import { authenticate } from "../shopify.server";
 import { SuggestionReviewEmbed } from "../components/SuggestionReviewEmbed";
 
