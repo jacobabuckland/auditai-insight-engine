@@ -1,35 +1,25 @@
-
 import { json } from "@remix-run/node";
 import { authenticate } from "~/shopify.server";
 
 /**
- * Crawl API endpoint that forwards requests to the AuditAI backend
- * @param {Request} request - The incoming request object
- * @returns {Promise<Response>} JSON response from the crawl service
+ * POST /api/crawl
+ * Proxies crawl requests to the AuditAI backend
  */
 export const action = async ({ request }) => {
+  if (request.method !== "POST") {
+    return new Response("Method Not Allowed", { status: 405 });
+  }
+
   try {
-    console.log("⚡ Received crawl request");
-    
-    // Authenticate the request and get the session
+    // Auth via Shopify
     const { session } = await authenticate.admin(request);
     const body = await request.json();
-    
-    // Log the request body for debugging
-    console.log("📦 Request body:", JSON.stringify(body));
-    
-    // Ensure shop is included from frontend
-    const shopDomain = body.shop || session.shop; 
-    
-    // Forward the request to our backend service with the shop domain
-    const backendUrl = "https://auditai-insight-engine.onrender.com/crawl";
-    console.log(`🔄 Forwarding request to: ${backendUrl}`);
-    
-    const res = await fetch(backendUrl, {
+
+    const backendRes = await fetch("https://auditai-insight-engine.onrender.com/crawl", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Shop-Domain": shopDomain,
+        "X-Shop-Domain": session.shop, // pass shop domain for context
       },
       body: JSON.stringify({
         ...body,
