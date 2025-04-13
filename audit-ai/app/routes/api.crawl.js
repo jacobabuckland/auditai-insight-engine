@@ -1,3 +1,4 @@
+
 import { json } from "@remix-run/node";
 import { authenticate } from "~/shopify.server";
 
@@ -15,6 +16,7 @@ export const action = async ({ request }) => {
     const { session } = await authenticate.admin(request);
     const body = await request.json();
 
+    // Forward the request to our backend service
     const backendRes = await fetch("https://auditai-insight-engine.onrender.com/crawl", {
       method: "POST",
       headers: {
@@ -23,23 +25,23 @@ export const action = async ({ request }) => {
       },
       body: JSON.stringify({
         ...body,
-        shop: shopDomain // Ensure shop is passed to backend
+        shop: session.shop // Ensure shop is passed to backend
       }),
     });
 
     // Get the status code from the backend response
-    const statusCode = res.status;
+    const statusCode = backendRes.status;
     console.log(`📊 Backend response status: ${statusCode}`);
 
     // If the request was not successful, handle the error
-    if (!res.ok) {
-      const errorText = await res.text();
+    if (!backendRes.ok) {
+      const errorText = await backendRes.text();
       console.error(`❌ Crawl API error [${statusCode}]:`, errorText);
       return json({ success: false, error: "Crawl failed", details: errorText }, { status: statusCode });
     }
 
     // Return the JSON response from the backend with its status code
-    const data = await res.json();
+    const data = await backendRes.json();
     console.log("✅ Crawl successful, returning data to frontend");
     return json({ ...data, success: true }, { status: statusCode });
   } catch (error) {

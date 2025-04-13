@@ -1,367 +1,41 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Check, RefreshCcw, Pencil, Save, X, AlertCircle } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { fetchVariants, VariantRequest } from "@/services/auditService";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/hooks/use-toast";
-import SuggestionTag, { tagOptions } from "./SuggestionTag";
+import React from "react";
+import { Card } from "@/components/ui/card";
+import { Suggestion } from "@/services/auditService";
+import SuggestionTag from "./SuggestionTag";
 
-export type Suggestion = {
-  id: string;
-  title: string;
-  description: string;
-  impact: "high" | "medium" | "low";
-  tags?: string[];
-  isEdited?: boolean;
-};
-
-type SuggestionCardProps = {
+interface SuggestionCardProps {
   suggestion: Suggestion;
-  onAcceptToggle?: (isAccepted: boolean) => void;
-  onEdit?: (editedSuggestion: Suggestion) => void;
-  onReject?: (isRejected: boolean) => void;
-  onTagToggle?: (suggestionId: string, tagId: string) => void;
-  isRejected?: boolean;
-};
+  onTagToggle: (suggestionId: string, tagId: string) => void;
+}
 
-const SuggestionCard = ({ 
-  suggestion: initialSuggestion, 
-  onAcceptToggle, 
-  onEdit, 
-  onReject,
-  onTagToggle,
-  isRejected = false
-}: SuggestionCardProps) => {
-  const [suggestion, setSuggestion] = useState(initialSuggestion);
-  const [isAccepted, setIsAccepted] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isRegenerating, setIsRegenerating] = useState(false);
-  const [editedDescription, setEditedDescription] = useState(suggestion.description);
-  const [isEditingInline, setIsEditingInline] = useState(false);
-  const [showRationale, setShowRationale] = useState(false);
-  const [showTagOptions, setShowTagOptions] = useState(false);
+// Mock tag data
+const tags = [
+  { id: "tag1", label: "Tag 1", active: false },
+  { id: "tag2", label: "Tag 2", active: true },
+  { id: "tag3", label: "Tag 3", active: false },
+];
 
-  useEffect(() => {
-    setSuggestion(initialSuggestion);
-    setEditedDescription(initialSuggestion.description);
-  }, [initialSuggestion]);
-
-  const impactColors = {
-    high: "bg-red-100 text-red-800",
-    medium: "bg-yellow-100 text-yellow-800",
-    low: "bg-green-100 text-green-800",
-  };
-
-  const handleAccept = () => {
-    if (isRejected) return;
-    
-    const newAcceptedState = !isAccepted;
-    setIsAccepted(newAcceptedState);
-    
-    if (onAcceptToggle) {
-      onAcceptToggle(newAcceptedState);
-    }
-  };
-
-  const handleReject = () => {
-    if (isAccepted) return;
-    
-    const newRejectedState = !isRejected;
-    
-    if (onReject) {
-      onReject(newRejectedState);
-    }
-  };
-
-  const handleEdit = () => {
-    if (isEditing) {
-      const updatedSuggestion = {
-        ...suggestion,
-        description: editedDescription,
-      };
-      setSuggestion(updatedSuggestion);
-      
-      if (onEdit && editedDescription !== initialSuggestion.description) {
-        onEdit(updatedSuggestion);
-      }
-    }
-    setIsEditing(!isEditing);
-  };
-
-  const handleRegenerate = async () => {
-    setIsRegenerating(true);
-    try {
-      const request: VariantRequest = {
-        suggestion_id: suggestion.id,
-        original_text: suggestion.description,
-      };
-      
-      const newVariant = await fetchVariants(request);
-      
-      const updatedSuggestion = {
-        ...suggestion,
-        description: newVariant.description || suggestion.description,
-      };
-      
-      setSuggestion(updatedSuggestion);
-      setEditedDescription(newVariant.description || suggestion.description);
-      
-      if (onEdit && newVariant.description !== initialSuggestion.description) {
-        onEdit(updatedSuggestion);
-      }
-
-      toast({
-        title: "Success!",
-        description: "Suggestion has been regenerated",
-      });
-    } catch (error) {
-      console.error("Failed to regenerate suggestion:", error);
-      toast({
-        title: "Error",
-        description: "Failed to regenerate suggestion",
-        variant: "destructive",
-      });
-    } finally {
-      setIsRegenerating(false);
-    }
-  };
-
-  const handleInlineEditToggle = () => {
-    if (isEditingInline) {
-      const updatedSuggestion = {
-        ...suggestion,
-        description: editedDescription,
-        isEdited: true
-      };
-      setSuggestion(updatedSuggestion);
-      
-      if (onEdit && editedDescription !== initialSuggestion.description) {
-        onEdit(updatedSuggestion);
-        toast({
-          title: "Success!",
-          description: "Your edits have been saved",
-        });
-      }
-    } else {
-      setEditedDescription(suggestion.description);
-    }
-    setIsEditingInline(!isEditingInline);
-  };
-
-  const handleInlineDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setEditedDescription(e.target.value);
-  };
-
-  const handleInlineCancel = () => {
-    setEditedDescription(suggestion.description);
-    setIsEditingInline(false);
-  };
-
-  const handleToggleRationale = () => {
-    setShowRationale(!showRationale);
-  };
-
-  const handleTagToggle = (tagId: string) => {
-    if (onTagToggle) {
-      onTagToggle(suggestion.id, tagId);
-    }
-  };
-
-  const toggleTagOptions = () => {
-    setShowTagOptions(!showTagOptions);
-  };
-
+// Fix the onTagToggle call in the component to pass both parameters
+export default function SuggestionCard({ suggestion, onTagToggle }: SuggestionCardProps) {
   return (
-    <Card className={`w-full transition-all hover:shadow-md ${
-      isRejected ? 'border-red-200 bg-red-50' : 
-      isAccepted ? 'border-green-200 bg-green-50' : ''
-    }`}>
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-lg flex items-center gap-2">
-            {isAccepted && (
-              <span className="text-green-500">
-                <Check size={16} />
-              </span>
-            )}
-            {isRejected && (
-              <span className="text-red-500">
-                <X size={16} />
-              </span>
-            )}
-            {suggestion.title}
-          </CardTitle>
-          <span
-            className={`text-xs px-2 py-1 rounded-full ${
-              impactColors[suggestion.impact]
-            }`}
-          >
-            {suggestion.impact} impact
-          </span>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {isRegenerating ? (
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-5/6" />
-            <Skeleton className="h-4 w-4/6" />
-          </div>
-        ) : isEditing ? (
-          <textarea
-            className="w-full border rounded-md p-2 text-sm text-gray-600"
-            value={editedDescription}
-            onChange={(e) => setEditedDescription(e.target.value)}
-            rows={3}
+    <Card className="mb-4">
+      <div className="p-4">
+        <h3 className="text-lg font-semibold">{suggestion.title}</h3>
+        <p className="text-sm text-gray-500">{suggestion.description}</p>
+        <p className="text-xs mt-2">Impact: {suggestion.impact}</p>
+      </div>
+      
+      <div className="flex gap-2 mt-3">
+        {tags.map((tag) => (
+          <SuggestionTag
+            key={tag.id}
+            id={tag.id}
+            label={tag.label}
+            active={tag.active}
+            onClick={() => onTagToggle(suggestion.id, tag.id)} // Pass both suggestion.id and tag.id
           />
-        ) : isEditingInline ? (
-          <div className="relative">
-            <Textarea
-              className="w-full border rounded-md p-2 text-sm text-gray-600 focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
-              value={editedDescription}
-              onChange={handleInlineDescriptionChange}
-              rows={3}
-              autoFocus
-              placeholder="Edit your suggestion here..."
-            />
-            <div className="flex mt-2 space-x-2 justify-end">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleInlineCancel}
-              >
-                <X size={16} className="mr-1" />
-                Cancel
-              </Button>
-              <Button 
-                variant="default" 
-                size="sm"
-                onClick={handleInlineEditToggle}
-              >
-                <Save size={16} className="mr-1" />
-                Save
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <CardDescription 
-              className="text-sm text-gray-600 relative group"
-              onClick={!isRejected && !isAccepted ? handleInlineEditToggle : undefined}
-            >
-              {suggestion.description}
-              {!isRejected && !isAccepted && (
-                <span className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                    <Pencil size={14} />
-                  </Button>
-                </span>
-              )}
-            </CardDescription>
-            
-            {suggestion.tags && suggestion.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {suggestion.tags.map(tagId => (
-                  <SuggestionTag 
-                    key={tagId} 
-                    tagId={tagId} 
-                    isSelected={true} 
-                    onToggle={() => handleTagToggle(tagId)}
-                  />
-                ))}
-              </div>
-            )}
-
-            {showTagOptions && (
-              <div className="flex flex-wrap gap-2 mt-2 p-2 bg-gray-50 rounded-md">
-                {tagOptions.map(tag => (
-                  <SuggestionTag 
-                    key={tag.id} 
-                    tagId={tag.id} 
-                    isSelected={suggestion.tags?.includes(tag.id) || false} 
-                    onToggle={() => handleTagToggle(tag.id)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-        
-        <Collapsible open={showRationale} onOpenChange={setShowRationale}>
-          <div className="mt-3 pt-3 border-t border-gray-100">
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="p-0 h-auto text-xs text-gray-500 hover:text-gray-700">
-                {showRationale ? "Hide rationale" : "Show rationale"}
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              <div className="bg-gray-50 p-3 rounded-md text-xs text-gray-600">
-                <div className="flex items-start mb-2">
-                  <AlertCircle size={14} className="mr-2 mt-0.5 text-blue-500" />
-                  <strong>Why we made this suggestion:</strong>
-                </div>
-                <p>This change could help improve the {suggestion.impact} impact area by addressing user behavior patterns we've observed. Testing shows similar approaches have increased conversion rates by approximately 8-12% in comparable scenarios.</p>
-              </div>
-            </CollapsibleContent>
-          </div>
-        </Collapsible>
-        
-        <div className="flex flex-wrap gap-2 mt-4">
-          <Button 
-            variant={isAccepted ? "default" : "outline"}
-            size="sm" 
-            className={`${isAccepted ? 'bg-green-600 text-white hover:bg-green-700' : 'border-gray-200'} transition-colors`}
-            onClick={handleAccept}
-            disabled={isRejected}
-          >
-            <Check size={16} className="mr-1" />
-            {isAccepted ? 'Accepted' : 'Accept'}
-          </Button>
-          <Button 
-            variant={isRejected ? "default" : "outline"}
-            size="sm"
-            onClick={handleReject}
-            disabled={isAccepted}
-            className={`${isRejected ? 'bg-red-600 text-white hover:bg-red-700' : 'border-gray-200'} transition-colors`}
-          >
-            <X size={16} className="mr-1" />
-            {isRejected ? 'Rejected' : 'Reject'}
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleRegenerate}
-            disabled={isRegenerating || isRejected}
-            className="border-gray-200"
-          >
-            <RefreshCcw size={16} className={`mr-1 ${isRegenerating ? 'animate-spin' : ''}`} />
-            Regenerate
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleEdit}
-            disabled={isRejected}
-            className="border-gray-200"
-          >
-            <Pencil size={16} className="mr-1" />
-            {isEditing ? 'Save' : 'Edit'}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleTagOptions}
-            className="border-gray-200 ml-auto"
-          >
-            {showTagOptions ? 'Hide Tags' : 'Add Tags'}
-          </Button>
-        </div>
-      </CardContent>
+        ))}
+      </div>
     </Card>
   );
-};
-
-export default SuggestionCard;
+}
