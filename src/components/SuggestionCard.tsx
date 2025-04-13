@@ -269,7 +269,7 @@ const SuggestionCard = ({
                     key={tagId} 
                     tagId={tagId} 
                     isSelected={true} 
-                    onToggle={handleTagToggle}
+                    onToggle={() => handleTagToggle(tagId)}
                   />
                 ))}
               </div>
@@ -282,7 +282,7 @@ const SuggestionCard = ({
                     key={tag.id} 
                     tagId={tag.id} 
                     isSelected={suggestion.tags?.includes(tag.id) || false} 
-                    onToggle={handleTagToggle}
+                    onToggle={() => handleTagToggle(tag.id)}
                   />
                 ))}
               </div>
