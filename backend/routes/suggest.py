@@ -12,10 +12,13 @@ logger = logging.getLogger(__name__)
 @router.post("/suggest", response_model=SuggestResponse)
 async def suggest_cro_ideas(request: SuggestRequest):
     try:
+        # ✅ Log shop domain to track suggestions
+        logger.info(f"💡 Generating suggestions for shop: {request.shop}")
+
         prompt = build_prompt(request.html, request.goal)
         gpt_response = await run_in_threadpool(call_gpt, prompt)
 
-        # Clean GPT output (in case it's wrapped in markdown)
+        # ✅ Clean GPT output (in case it's wrapped in markdown)
         if gpt_response.startswith("```json"):
             gpt_response = gpt_response.replace("```json", "").replace("```", "").strip()
 
@@ -23,14 +26,14 @@ async def suggest_cro_ideas(request: SuggestRequest):
         return SuggestResponse(**parsed)
 
     except json.JSONDecodeError as json_err:
-        logger.error(f"❌ Failed to decode GPT response: {json_err}")
+        logger.error(f"❌ Failed to decode GPT response for shop {request.shop}: {json_err}")
         return SuggestResponse(
             rationale="GPT returned invalid JSON",
             suggestions=[]
         )
 
     except Exception as e:
-        logger.exception("❌ Suggest endpoint failed")
+        logger.exception(f"❌ Suggest endpoint failed for shop {request.shop}")
         return SuggestResponse(
             rationale="GPT call failed unexpectedly",
             suggestions=[]

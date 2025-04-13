@@ -14,10 +14,12 @@ class SuggestResponse(BaseModel):
 class SuggestRequest(BaseModel):
     html: str
     goal: str = Field(..., example="increase add to cart")
+    shop: str = Field(..., example="mystore.myshopify.com")  # ✅ Added shop context
 
 # 👇 Models used for /crawl endpoint
 class CrawlRequest(BaseModel):
     url: str = Field(..., example="https://example.com")
+    shop: str = Field(..., example="mystore.myshopify.com")  # ✅ Added shop context
 
 class PageData(BaseModel):
     url: str

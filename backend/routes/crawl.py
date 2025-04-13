@@ -19,12 +19,16 @@ def crawl_page(request: CrawlRequest):
         return JSONResponse(status_code=400, content={"error": "Invalid URL"})
     
     try:
-        logger.info(f"Starting crawl for URL: {request.url}")
+        # ✅ Log shop domain to associate the crawl
+        logger.info(f"🔍 Crawling for shop: {request.shop} | URL: {request.url}")
+
         result = scrape_page(request.url)
-        logger.info(f"Crawl completed for {request.url}")
+
+        # ✅ You could store or tag result here with shop for future analytics/logging
+        logger.info(f"✅ Crawl completed for shop: {request.shop} | URL: {request.url}")
         return PageData(**result)
     except Exception as e:
-        logger.error(f"❌ Crawl failed: {e}")
+        logger.error(f"❌ Crawl failed for shop {request.shop}: {e}")
         traceback.print_exc()
         return JSONResponse(
             status_code=500,
