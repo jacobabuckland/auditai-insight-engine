@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,19 +10,19 @@ const MOCK_SUGGESTIONS: Suggestion[] = [
     id: "1",
     title: "Optimize Product Page Images",
     description: "Ensure all product images are high quality and optimized for fast loading.",
-    impact: "High",
+    impact: "high",
   },
   {
     id: "2",
     title: "Improve Mobile Responsiveness",
     description: "Make sure the website is fully responsive on all mobile devices.",
-    impact: "Medium",
+    impact: "medium",
   },
   {
     id: "3",
     title: "Add Customer Reviews Section",
     description: "Include a section for customer reviews to build trust and social proof.",
-    impact: "High",
+    impact: "high",
   },
 ];
 
