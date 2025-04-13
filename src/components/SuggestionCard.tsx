@@ -175,6 +175,7 @@ const SuggestionCard = ({
     setShowRationale(!showRationale);
   };
 
+  // Here's the fix: Pass both suggestion.id and tagId to onTagToggle
   const handleTagToggle = (tagId: string) => {
     if (onTagToggle) {
       onTagToggle(suggestion.id, tagId);
