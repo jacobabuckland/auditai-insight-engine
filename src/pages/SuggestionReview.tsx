@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +12,11 @@ import SuggestionCard from "@/components/SuggestionCard";
 import { Suggestion } from "@/services/auditService";
 import { useShop } from "@/contexts/ShopContext";
 import { toast } from "@/components/ui/use-toast";
+
+// Default option to show while loading
+const DEFAULT_OPTIONS = [
+  { label: "Home Page", value: "/" },
+];
 
 const MOCK_SUGGESTIONS: Suggestion[] = [
   {
@@ -35,17 +39,47 @@ const MOCK_SUGGESTIONS: Suggestion[] = [
   },
 ];
 
-const PAGE_OPTIONS = [
-  { label: "Home Page", value: "/" },
-  { label: "Product Page", value: "/products/example-product" },
-  { label: "Collection Page", value: "/collections/example-collection" },
-];
-
 const SuggestionReview = () => {
   const navigate = useNavigate();
   const { shopDomain } = useShop();
   const [suggestions, setSuggestions] = useState<Suggestion[]>(MOCK_SUGGESTIONS);
-  const [selectedPath, setSelectedPath] = useState<string>(PAGE_OPTIONS[0].value);
+  const [selectedPath, setSelectedPath] = useState<string>("/");
+  const [pageOptions, setPageOptions] = useState(DEFAULT_OPTIONS);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPageOptions = async () => {
+      if (!shopDomain) return;
+
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/choices`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch options: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.options && data.options.length > 0) {
+          setPageOptions(data.options);
+          // Set default selection to home page
+          setSelectedPath(data.options[0].value);
+        }
+      } catch (error) {
+        console.error("Error fetching page options:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load page options. Using defaults.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPageOptions();
+  }, [shopDomain]);
 
   const handleGoBack = () => {
     navigate("/dashboard");
@@ -89,12 +123,13 @@ const SuggestionReview = () => {
         <Select
           value={selectedPath}
           onValueChange={setSelectedPath}
+          disabled={isLoading}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select a page type" />
+            <SelectValue placeholder={isLoading ? "Loading options..." : "Select a page type"} />
           </SelectTrigger>
           <SelectContent>
-            {PAGE_OPTIONS.map((option) => (
+            {pageOptions.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>
@@ -103,7 +138,7 @@ const SuggestionReview = () => {
         </Select>
       </div>
       
-      <Button onClick={handleSubmit} className="mb-6">
+      <Button onClick={handleSubmit} className="mb-6" disabled={isLoading || !selectedPath}>
         Apply to Selected Page
       </Button>
       
