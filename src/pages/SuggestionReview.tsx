@@ -60,7 +60,7 @@ const SuggestionReview = () => {
     if (!shopDomain) {
       toast({
         title: "Error",
-        description: "No shop domain found. Please reload the page.",
+        description: "Missing Shopify domain — please refresh the app.",
         variant: "destructive",
       });
       return;
