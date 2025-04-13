@@ -51,7 +51,7 @@ const EmptyDashboard = ({ onRunFirstAudit }: EmptyDashboardProps) => {
       console.error("Error running audit:", error);
       toast({
         title: "Audit Failed",
-        description: "There was an error starting your audit. Please try again.",
+        description: "There was an error starting your audit. Please try again later or contact support.",
         variant: "destructive",
       });
     } finally {

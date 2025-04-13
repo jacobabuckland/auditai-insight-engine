@@ -40,8 +40,8 @@ export type SuggestResponse = {
   }>;
 };
 
-// Update the API base URL to use the Remix API routes
-const API_BASE_URL = "/api";
+// Update API base URL to use the direct Render endpoint
+const API_BASE_URL = "https://auditai-insight-engine.onrender.com/api";
 
 // Helper function to verify shop domain is available
 const verifyShopDomain = (shopDomain: string | null): boolean => {
@@ -73,6 +73,7 @@ export async function crawlPage(url: string, shopDomain: string | null): Promise
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(shopDomain && { "X-Shop-Domain": shopDomain }), // Include shop domain in header
       },
       body: JSON.stringify(payload),
     });
@@ -100,7 +101,7 @@ export async function crawlPage(url: string, shopDomain: string | null): Promise
     console.error("Failed to crawl page:", error);
     toast({
       title: "Error",
-      description: "Failed to crawl the page. Please try again.",
+      description: "Failed to crawl the page. Please try again later or contact support.",
       variant: "destructive",
     });
     

@@ -69,10 +69,12 @@ export function SuggestionReviewEmbed({ shopDomain }) {
     setError(null);
     
     try {
-      const response = await fetch('/api/crawl', {
+      // Call the backend directly using the Render endpoint
+      const response = await fetch('https://auditai-insight-engine.onrender.com/api/crawl', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Shop-Domain': shopDomain, // Include shop domain in header
         },
         body: JSON.stringify({ url: crawlUrl, shop: shopDomain }),
       });
@@ -85,7 +87,7 @@ export function SuggestionReviewEmbed({ shopDomain }) {
       setSuggestions(data.suggestions || []);
     } catch (error) {
       console.error("Error running audit:", error);
-      setError("Failed to run the audit. Please try again later.");
+      setError("Failed to run the audit. Please try again later or check your network connection.");
     } finally {
       setIsRunningAudit(false);
     }
@@ -164,4 +166,6 @@ export function SuggestionReviewEmbed({ shopDomain }) {
       )}
     </BlockStack>
   );
-}
+};
+
+export default SuggestionReviewEmbed;
