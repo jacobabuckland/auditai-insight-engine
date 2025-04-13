@@ -2,7 +2,7 @@
 import React from 'react';
 import { useShop } from '@/contexts/ShopContext';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { Spinner } from '@shopify/polaris';
+import { Loader2 } from 'lucide-react';
 
 interface ShopRequiredProps {
   children: React.ReactNode;
@@ -14,7 +14,7 @@ export const ShopRequired: React.FC<ShopRequiredProps> = ({ children }) => {
   if (isShopLoading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
-        <Spinner size="large" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
     );
   }
