@@ -43,25 +43,22 @@ export type SuggestResponse = {
 // Update the API base URL to use the Remix API routes
 const API_BASE_URL = "/api";
 
-// Helper function to get shop domain from localStorage or URL
-const getShopDomain = (): string | null => {
-  // First try localStorage
-  const storedShop = localStorage.getItem('shopDomain');
-  if (storedShop) return storedShop;
-  
-  // Then try URL query parameter
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get('shop');
-};
-
-export async function crawlPage(url: string): Promise<CrawlResponse> {
+export async function crawlPage(url: string, shopDomain: string | null): Promise<CrawlResponse> {
   try {
     console.log("Crawling page:", url);
     
-    const shopDomain = getShopDomain();
+    if (!shopDomain) {
+      toast({
+        title: "Error",
+        description: "Unable to detect store. Please refresh or contact support.",
+        variant: "destructive",
+      });
+      return { success: false };
+    }
+    
     const payload = { 
       url,
-      shop: shopDomain // Include shop domain in the payload
+      shop: shopDomain
     };
     
     const response = await fetch(`${API_BASE_URL}/crawl`, {
@@ -108,12 +105,20 @@ export async function crawlPage(url: string): Promise<CrawlResponse> {
 
 export async function fetchSuggestions(
   data: AuditFormData,
-  html?: string
+  html: string | undefined,
+  shopDomain: string | null
 ): Promise<{ rationale: string; suggestions: Suggestion[] }> {
   try {
     console.log("Fetching suggestions for:", data.page_url);
     
-    const shopDomain = getShopDomain();
+    if (!shopDomain) {
+      toast({
+        title: "Error",
+        description: "Unable to detect store. Please refresh or contact support.",
+        variant: "destructive",
+      });
+      return { rationale: "Store detection failed", suggestions: [] };
+    }
     
     const response = await fetch(`${API_BASE_URL}/suggest`, {
       method: "POST",
@@ -123,7 +128,7 @@ export async function fetchSuggestions(
       body: JSON.stringify({ 
         html: html || "",
         goal: data.goal,
-        shop: shopDomain // Include shop domain in the payload
+        shop: shopDomain
       }),
     });
 
@@ -161,14 +166,27 @@ export async function fetchSuggestions(
   }
 }
 
-export async function fetchVariants(data: VariantRequest): Promise<Suggestion> {
+export async function fetchVariants(data: VariantRequest, shopDomain: string | null): Promise<Suggestion> {
   try {
     console.log("Fetching variants for suggestion:", data.suggestion_id);
     
-    const shopDomain = getShopDomain();
+    if (!shopDomain) {
+      toast({
+        title: "Error",
+        description: "Unable to detect store. Please refresh or contact support.",
+        variant: "destructive",
+      });
+      return {
+        id: "error",
+        title: "Store detection failed",
+        description: "Unable to detect connected store.",
+        impact: "low",
+      };
+    }
+    
     const payload = {
       ...data,
-      shop: shopDomain // Include shop domain in the payload
+      shop: shopDomain
     };
     
     const response = await fetch(`${API_BASE_URL}/variants`, {

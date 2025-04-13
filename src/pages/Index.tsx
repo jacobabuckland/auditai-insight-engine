@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import AuditForm from "@/components/AuditForm";
 import SuggestionCard, { Suggestion } from "@/components/SuggestionCard";
@@ -10,6 +9,7 @@ import Navigation from "@/components/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { useShop } from "@/contexts/ShopContext";
 
 const Index = () => {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -23,8 +23,8 @@ const Index = () => {
   const [rationale, setRationale] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { shopDomain } = useShop();
 
-  // Use edited suggestions when available, otherwise use original suggestions
   const displayedSuggestions = useMemo(() => {
     return suggestions.map(suggestion => {
       const edited = editedSuggestions.get(suggestion.id);
@@ -32,9 +32,7 @@ const Index = () => {
     });
   }, [suggestions, editedSuggestions]);
 
-  // Calculate modified HTML based on accepted suggestions (using edited versions when available)
   const modifiedHtml = useMemo(() => {
-    // Map through accepted suggestions and replace with edited versions if they exist
     const acceptedWithEdits = acceptedSuggestions.map(suggestion => {
       const edited = editedSuggestions.get(suggestion.id);
       return edited || suggestion;
@@ -53,7 +51,6 @@ const Index = () => {
       return;
     }
 
-    // Reset states
     setIsCrawling(true);
     setIsLoading(true);
     setSuggestions([]);
@@ -65,8 +62,7 @@ const Index = () => {
     setError(null);
 
     try {
-      // First, crawl the page
-      const crawlResult = await crawlPage(formData.page_url);
+      const crawlResult = await crawlPage(formData.page_url, shopDomain);
       
       if (!crawlResult.success) {
         throw new Error("Crawling failed. Please check the URL and try again.");
@@ -76,12 +72,10 @@ const Index = () => {
       setPageType(crawlResult.page_type || null);
       setScreenshotPath(crawlResult.screenshot_path || null);
       
-      // Store the HTML content from the crawl
       const pageHtml = crawlResult.html || "<html><body><h1>No HTML content available</h1></body></html>";
       setOriginalHtml(pageHtml);
       
-      // Then, fetch suggestions using the crawled HTML and goal
-      const suggestResults = await fetchSuggestions(formData, pageHtml);
+      const suggestResults = await fetchSuggestions(formData, pageHtml, shopDomain);
       setSuggestions(suggestResults.suggestions);
       setRationale(suggestResults.rationale);
       
@@ -105,10 +99,8 @@ const Index = () => {
     }
   };
 
-  // Handler for when a suggestion is accepted
   const handleSuggestionAccepted = (suggestion: Suggestion, isAccepted: boolean) => {
     if (isAccepted) {
-      // If the suggestion has been edited, use the edited version when accepting
       const suggestionToAdd = editedSuggestions.get(suggestion.id) || suggestion;
       setAcceptedSuggestions(prev => [...prev, suggestionToAdd]);
     } else {
@@ -116,16 +108,13 @@ const Index = () => {
     }
   };
 
-  // Handler for when a suggestion is edited
   const handleSuggestionEdited = (editedSuggestion: Suggestion) => {
-    // Store the edited suggestion in the Map
     setEditedSuggestions(prev => {
       const newMap = new Map(prev);
       newMap.set(editedSuggestion.id, editedSuggestion);
       return newMap;
     });
     
-    // If this suggestion was already accepted, update its content in the accepted list too
     if (acceptedSuggestions.some(s => s.id === editedSuggestion.id)) {
       setAcceptedSuggestions(prev => 
         prev.map(s => s.id === editedSuggestion.id ? editedSuggestion : s)
