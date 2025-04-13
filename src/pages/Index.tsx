@@ -1,224 +1,32 @@
-import React, { useState, useMemo } from "react";
-import AuditForm from "@/components/AuditForm";
-import SuggestionCard, { Suggestion } from "@/components/SuggestionCard";
-import { fetchSuggestions, AuditFormData, crawlPage, applyHtmlSuggestions } from "@/services/auditService";
-import { useToast } from "@/hooks/use-toast";
-import { Badge } from "@/components/ui/badge";
-import PreviewPanel from "@/components/PreviewPanel";
-import Navigation from "@/components/Navigation";
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { useShop } from "@/contexts/ShopContext";
 
-const Index = () => {
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [editedSuggestions, setEditedSuggestions] = useState<Map<string, Suggestion>>(new Map());
-  const [acceptedSuggestions, setAcceptedSuggestions] = useState<Suggestion[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isCrawling, setIsCrawling] = useState(false);
-  const [pageType, setPageType] = useState<string | null>(null);
-  const [screenshotPath, setScreenshotPath] = useState<string | null>(null);
-  const [originalHtml, setOriginalHtml] = useState<string>("");
-  const [rationale, setRationale] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
+import { ShopRequired } from '@/components/ShopRequired';
+import { useShop } from '@/contexts/ShopContext';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+export default function Index() {
   const { shopDomain } = useShop();
+  const navigate = useNavigate();
 
-  const displayedSuggestions = useMemo(() => {
-    return suggestions.map(suggestion => {
-      const edited = editedSuggestions.get(suggestion.id);
-      return edited || suggestion;
-    });
-  }, [suggestions, editedSuggestions]);
-
-  const modifiedHtml = useMemo(() => {
-    const acceptedWithEdits = acceptedSuggestions.map(suggestion => {
-      const edited = editedSuggestions.get(suggestion.id);
-      return edited || suggestion;
-    });
-    
-    return applyHtmlSuggestions(originalHtml, acceptedWithEdits);
-  }, [originalHtml, acceptedSuggestions, editedSuggestions]);
-
-  const handleSubmit = async (formData: AuditFormData) => {
-    if (!formData.page_url || !formData.goal) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
-      return;
+  // Auto-redirect to dashboard if we have a shop domain
+  useEffect(() => {
+    if (shopDomain) {
+      navigate('/dashboard');
     }
-
-    setIsCrawling(true);
-    setIsLoading(true);
-    setSuggestions([]);
-    setAcceptedSuggestions([]);
-    setPageType(null);
-    setScreenshotPath(null);
-    setOriginalHtml("");
-    setRationale("");
-    setError(null);
-
-    try {
-      const crawlResult = await crawlPage(formData.page_url, shopDomain);
-      
-      if (!crawlResult.success) {
-        throw new Error("Crawling failed. Please check the URL and try again.");
-      }
-      
-      setIsCrawling(false);
-      setPageType(crawlResult.page_type || null);
-      setScreenshotPath(crawlResult.screenshot_path || null);
-      
-      const pageHtml = crawlResult.html || "<html><body><h1>No HTML content available</h1></body></html>";
-      setOriginalHtml(pageHtml);
-      
-      const suggestResults = await fetchSuggestions(formData, pageHtml, shopDomain);
-      setSuggestions(suggestResults.suggestions);
-      setRationale(suggestResults.rationale);
-      
-      if (suggestResults.suggestions.length === 0) {
-        toast({
-          title: "Notice",
-          description: "No suggestions were generated. Try a different URL or goal.",
-        });
-      }
-    } catch (error) {
-      console.error("Error during audit:", error);
-      setError(error instanceof Error ? error.message : "Something went wrong. Please try again.");
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsCrawling(false);
-      setIsLoading(false);
-    }
-  };
-
-  const handleSuggestionAccepted = (suggestion: Suggestion, isAccepted: boolean) => {
-    if (isAccepted) {
-      const suggestionToAdd = editedSuggestions.get(suggestion.id) || suggestion;
-      setAcceptedSuggestions(prev => [...prev, suggestionToAdd]);
-    } else {
-      setAcceptedSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
-    }
-  };
-
-  const handleSuggestionEdited = (editedSuggestion: Suggestion) => {
-    setEditedSuggestions(prev => {
-      const newMap = new Map(prev);
-      newMap.set(editedSuggestion.id, editedSuggestion);
-      return newMap;
-    });
-    
-    if (acceptedSuggestions.some(s => s.id === editedSuggestion.id)) {
-      setAcceptedSuggestions(prev => 
-        prev.map(s => s.id === editedSuggestion.id ? editedSuggestion : s)
-      );
-    }
-
-    toast({
-      title: "Suggestion Updated",
-      description: "Your changes have been saved locally.",
-      duration: 3000,
-    });
-  };
+  }, [shopDomain, navigate]);
 
   return (
-    <div className="container mx-auto px-4 py-4 max-w-6xl">
-      <Navigation />
-      
-      <header className="mb-8 text-center">
-        <h1 className="text-3xl font-bold mb-2">Audit a Page</h1>
-        <p className="text-muted-foreground">
-          Enter a URL or select a page from your Shopify store
-        </p>
-      </header>
-
-      <div className="mb-10">
-        <AuditForm onSubmit={handleSubmit} isLoading={isLoading || isCrawling} />
+    <ShopRequired>
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
+        <h1 className="text-3xl font-bold mb-4">Welcome to ConvertIQ</h1>
+        <p className="mb-6">Your CRO Assistant for Shopify</p>
+        <a 
+          href="/dashboard" 
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Go to Dashboard
+        </a>
       </div>
-
-      {error && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {(isLoading || isCrawling) && (
-        <div className="flex flex-col justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-          <p className="text-muted-foreground">
-            {isCrawling ? "Crawling page..." : "Generating suggestions..."}
-          </p>
-        </div>
-      )}
-
-      {pageType && (
-        <div className="mb-6 flex items-center">
-          <Badge variant="outline" className="text-sm py-1 px-3">
-            🧭 {pageType}
-          </Badge>
-          
-          {screenshotPath && (
-            <div className="ml-4 border rounded-md overflow-hidden w-16 h-16 bg-gray-100 flex-shrink-0">
-              <div 
-                className="w-full h-full bg-gray-200 flex items-center justify-center text-xs text-gray-500"
-                style={{ backgroundImage: screenshotPath ? `url(${screenshotPath})` : 'none' }}
-              >
-                {!screenshotPath.startsWith('http') && 'Preview'}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {!isLoading && !isCrawling && rationale && (
-        <Card className="mb-8">
-          <CardContent className="pt-6">
-            <h2 className="text-xl font-semibold mb-2">Analysis Rationale</h2>
-            <p className="text-gray-700">{rationale}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {!isLoading && !isCrawling && originalHtml && (
-        <PreviewPanel 
-          originalHtml={originalHtml} 
-          modifiedHtml={modifiedHtml || originalHtml}
-          acceptedSuggestions={acceptedSuggestions}
-        />
-      )}
-
-      {!isLoading && !isCrawling && suggestions.length > 0 && (
-        <div className="mt-6">
-          <h2 className="text-2xl font-semibold mb-4">Suggestions</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            {displayedSuggestions.map((suggestion) => (
-              <SuggestionCard 
-                key={suggestion.id} 
-                suggestion={suggestion} 
-                onAcceptToggle={(isAccepted) => handleSuggestionAccepted(suggestion, isAccepted)}
-                onEdit={handleSuggestionEdited}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {!isLoading && !isCrawling && suggestions.length === 0 && !originalHtml && !error && (
-        <div className="text-center py-10 text-muted-foreground">
-          Submit the form to get optimization suggestions
-        </div>
-      )}
-    </div>
+    </ShopRequired>
   );
-};
-
-export default Index;
+}

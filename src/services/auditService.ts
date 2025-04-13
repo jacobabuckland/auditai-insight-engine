@@ -43,16 +43,24 @@ export type SuggestResponse = {
 // Update the API base URL to use the Remix API routes
 const API_BASE_URL = "/api";
 
+// Helper function to verify shop domain is available
+const verifyShopDomain = (shopDomain: string | null): boolean => {
+  if (!shopDomain) {
+    toast({
+      title: "Error",
+      description: "Unable to detect store. Please refresh or contact support.",
+      variant: "destructive",
+    });
+    return false;
+  }
+  return true;
+};
+
 export async function crawlPage(url: string, shopDomain: string | null): Promise<CrawlResponse> {
   try {
-    console.log("Crawling page:", url);
+    console.log("Crawling page:", url, "for shop:", shopDomain);
     
-    if (!shopDomain) {
-      toast({
-        title: "Error",
-        description: "Unable to detect store. Please refresh or contact support.",
-        variant: "destructive",
-      });
+    if (!verifyShopDomain(shopDomain)) {
       return { success: false };
     }
     
@@ -109,14 +117,9 @@ export async function fetchSuggestions(
   shopDomain: string | null
 ): Promise<{ rationale: string; suggestions: Suggestion[] }> {
   try {
-    console.log("Fetching suggestions for:", data.page_url);
+    console.log("Fetching suggestions for:", data.page_url, "for shop:", shopDomain);
     
-    if (!shopDomain) {
-      toast({
-        title: "Error",
-        description: "Unable to detect store. Please refresh or contact support.",
-        variant: "destructive",
-      });
+    if (!verifyShopDomain(shopDomain)) {
       return { rationale: "Store detection failed", suggestions: [] };
     }
     
@@ -168,14 +171,9 @@ export async function fetchSuggestions(
 
 export async function fetchVariants(data: VariantRequest, shopDomain: string | null): Promise<Suggestion> {
   try {
-    console.log("Fetching variants for suggestion:", data.suggestion_id);
+    console.log("Fetching variants for suggestion:", data.suggestion_id, "for shop:", shopDomain);
     
-    if (!shopDomain) {
-      toast({
-        title: "Error",
-        description: "Unable to detect store. Please refresh or contact support.",
-        variant: "destructive",
-      });
+    if (!verifyShopDomain(shopDomain)) {
       return {
         id: "error",
         title: "Store detection failed",
