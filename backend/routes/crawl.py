@@ -6,7 +6,8 @@ from urllib.parse import urlparse
 import logging
 import traceback
 
-router = APIRouter()
+# ✅ Updated prefix to match frontend expectations
+router = APIRouter(prefix="/api")
 logger = logging.getLogger(__name__)
 
 def is_valid_url(url: str) -> bool:
