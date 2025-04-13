@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/select";
 import SuggestionCard from "@/components/SuggestionCard";
 import { Suggestion } from "@/services/auditService";
+import { useShop } from "@/contexts/ShopContext";
+import { toast } from "@/components/ui/use-toast";
 
 const MOCK_SUGGESTIONS: Suggestion[] = [
   {
@@ -41,6 +43,7 @@ const PAGE_OPTIONS = [
 
 const SuggestionReview = () => {
   const navigate = useNavigate();
+  const { shopDomain } = useShop();
   const [suggestions, setSuggestions] = useState<Suggestion[]>(MOCK_SUGGESTIONS);
   const [selectedPath, setSelectedPath] = useState<string>(PAGE_OPTIONS[0].value);
 
@@ -54,8 +57,22 @@ const SuggestionReview = () => {
   };
 
   const handleSubmit = () => {
-    console.log("Form submitted with path:", selectedPath);
-    // Here you would implement the form submission logic using the selectedPath
+    if (!shopDomain) {
+      toast({
+        title: "Error",
+        description: "No shop domain found. Please reload the page.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Construct the full URL using the shop domain and selected path
+    const crawlUrl = `https://${shopDomain}${selectedPath}`;
+    console.log("Form submitted with URL:", crawlUrl);
+    
+    // Here you would implement the form submission logic sending the crawlUrl
+    // This would typically use the crawlPage function from auditService.ts
+    // For example: crawlPage(crawlUrl, shopDomain)
   };
 
   return (
