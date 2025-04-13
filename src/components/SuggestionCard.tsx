@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,7 +44,6 @@ const SuggestionCard = ({
   const [showRationale, setShowRationale] = useState(false);
   const [showTagOptions, setShowTagOptions] = useState(false);
 
-  // Update editedDescription when initialSuggestion changes
   useEffect(() => {
     setSuggestion(initialSuggestion);
     setEditedDescription(initialSuggestion.description);
@@ -58,7 +56,7 @@ const SuggestionCard = ({
   };
 
   const handleAccept = () => {
-    if (isRejected) return; // Can't accept if rejected
+    if (isRejected) return;
     
     const newAcceptedState = !isAccepted;
     setIsAccepted(newAcceptedState);
@@ -69,7 +67,7 @@ const SuggestionCard = ({
   };
 
   const handleReject = () => {
-    if (isAccepted) return; // Can't reject if accepted
+    if (isAccepted) return;
     
     const newRejectedState = !isRejected;
     
@@ -80,14 +78,12 @@ const SuggestionCard = ({
 
   const handleEdit = () => {
     if (isEditing) {
-      // Save the edited description
       const updatedSuggestion = {
         ...suggestion,
         description: editedDescription,
       };
       setSuggestion(updatedSuggestion);
       
-      // Notify parent component of the edit
       if (onEdit && editedDescription !== initialSuggestion.description) {
         onEdit(updatedSuggestion);
       }
@@ -98,16 +94,13 @@ const SuggestionCard = ({
   const handleRegenerate = async () => {
     setIsRegenerating(true);
     try {
-      // Prepare the request
       const request: VariantRequest = {
         suggestion_id: suggestion.id,
         original_text: suggestion.description,
       };
       
-      // Call the fetchVariants function from auditService
       const newVariant = await fetchVariants(request);
       
-      // Update the suggestion with the new variant
       const updatedSuggestion = {
         ...suggestion,
         description: newVariant.description || suggestion.description,
@@ -116,7 +109,6 @@ const SuggestionCard = ({
       setSuggestion(updatedSuggestion);
       setEditedDescription(newVariant.description || suggestion.description);
       
-      // Notify parent component of the edit
       if (onEdit && newVariant.description !== initialSuggestion.description) {
         onEdit(updatedSuggestion);
       }
@@ -139,7 +131,6 @@ const SuggestionCard = ({
 
   const handleInlineEditToggle = () => {
     if (isEditingInline) {
-      // Save changes when exiting inline edit mode
       const updatedSuggestion = {
         ...suggestion,
         description: editedDescription,
@@ -147,7 +138,6 @@ const SuggestionCard = ({
       };
       setSuggestion(updatedSuggestion);
       
-      // Notify parent component of the edit
       if (onEdit && editedDescription !== initialSuggestion.description) {
         onEdit(updatedSuggestion);
         toast({
@@ -156,7 +146,6 @@ const SuggestionCard = ({
         });
       }
     } else {
-      // Start with current description when entering edit mode
       setEditedDescription(suggestion.description);
     }
     setIsEditingInline(!isEditingInline);
@@ -175,7 +164,6 @@ const SuggestionCard = ({
     setShowRationale(!showRationale);
   };
 
-  // Here's the fix: Pass both suggestion.id and tagId to onTagToggle
   const handleTagToggle = (tagId: string) => {
     if (onTagToggle) {
       onTagToggle(suggestion.id, tagId);
@@ -274,7 +262,6 @@ const SuggestionCard = ({
               )}
             </CardDescription>
             
-            {/* Tags display area */}
             {suggestion.tags && suggestion.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {suggestion.tags.map(tagId => (
@@ -282,13 +269,12 @@ const SuggestionCard = ({
                     key={tagId} 
                     tagId={tagId} 
                     isSelected={true} 
-                    onToggle={handleTagToggle} 
+                    onToggle={handleTagToggle}
                   />
                 ))}
               </div>
             )}
 
-            {/* Tag selection area */}
             {showTagOptions && (
               <div className="flex flex-wrap gap-2 mt-2 p-2 bg-gray-50 rounded-md">
                 {tagOptions.map(tag => (
@@ -296,7 +282,7 @@ const SuggestionCard = ({
                     key={tag.id} 
                     tagId={tag.id} 
                     isSelected={suggestion.tags?.includes(tag.id) || false} 
-                    onToggle={handleTagToggle} 
+                    onToggle={handleTagToggle}
                   />
                 ))}
               </div>
