@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,14 @@ import SuggestionCard from "@/components/SuggestionCard";
 import { Suggestion } from "@/services/auditService";
 import { useShop } from "@/contexts/ShopContext";
 import { toast } from "@/components/ui/use-toast";
+
+const pageOptions = [
+  { label: "Home Page", value: "/" },
+  { label: "Product Page: /products/example", value: "/products/example" },
+  { label: "Collection Page: /collections/sale", value: "/collections/sale" },
+  { label: "Cart Page", value: "/cart" },
+  { label: "Checkout Page", value: "/checkout" },
+];
 
 // Default option to show while loading
 const DEFAULT_OPTIONS = [
@@ -100,6 +109,15 @@ const SuggestionReview = () => {
       return;
     }
     
+    if (!selectedPath) {
+      toast({
+        title: "Error",
+        description: "Please select a page to audit.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Construct the full URL using the shop domain and selected path
     const crawlUrl = `https://${shopDomain}${selectedPath}`;
     console.log("Form submitted with URL:", crawlUrl);
@@ -118,7 +136,7 @@ const SuggestionReview = () => {
       
       <div className="mb-6 max-w-xs">
         <label htmlFor="page-select" className="block text-sm font-medium mb-2">
-          Select Page Type
+          Page to audit
         </label>
         <Select
           value={selectedPath}
@@ -139,7 +157,7 @@ const SuggestionReview = () => {
       </div>
       
       <Button onClick={handleSubmit} className="mb-6" disabled={isLoading || !selectedPath}>
-        Apply to Selected Page
+        Run Audit
       </Button>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
