@@ -20,7 +20,8 @@ app.add_middleware(
 def health_check():
     return {"status": "ok"}
 
-app.include_router(suggest.router)
-app.include_router(crawl.router)
-app.include_router(debug_suggest.router)
-app.include_router(test_gpt.router)
+app.include_router(suggest.router, prefix="/api")
+app.include_router(crawl.router, prefix="/api")
+app.include_router(debug_suggest.router, prefix="/api")
+app.include_router(test_gpt.router, prefix="/api")
+
