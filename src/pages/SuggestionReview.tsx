@@ -2,6 +2,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import SuggestionCard from "@/components/SuggestionCard";
 import { Suggestion } from "@/services/auditService";
 
@@ -26,9 +33,16 @@ const MOCK_SUGGESTIONS: Suggestion[] = [
   },
 ];
 
+const PAGE_OPTIONS = [
+  { label: "Home Page", value: "/" },
+  { label: "Product Page", value: "/products/example-product" },
+  { label: "Collection Page", value: "/collections/example-collection" },
+];
+
 const SuggestionReview = () => {
   const navigate = useNavigate();
   const [suggestions, setSuggestions] = useState<Suggestion[]>(MOCK_SUGGESTIONS);
+  const [selectedPath, setSelectedPath] = useState<string>(PAGE_OPTIONS[0].value);
 
   const handleGoBack = () => {
     navigate("/dashboard");
@@ -39,12 +53,43 @@ const SuggestionReview = () => {
     // Here you would implement the logic to update the tag status
   };
 
+  const handleSubmit = () => {
+    console.log("Form submitted with path:", selectedPath);
+    // Here you would implement the form submission logic using the selectedPath
+  };
+
   return (
     <div className="container mx-auto p-8">
       <h1 className="text-2xl font-bold mb-4">Suggestion Review</h1>
       <Button onClick={handleGoBack} className="mb-4">
         Back to Dashboard
       </Button>
+      
+      <div className="mb-6 max-w-xs">
+        <label htmlFor="page-select" className="block text-sm font-medium mb-2">
+          Select Page Type
+        </label>
+        <Select
+          value={selectedPath}
+          onValueChange={setSelectedPath}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select a page type" />
+          </SelectTrigger>
+          <SelectContent>
+            {PAGE_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <Button onClick={handleSubmit} className="mb-6">
+        Apply to Selected Page
+      </Button>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {suggestions.map((suggestion) => (
           <SuggestionCard
