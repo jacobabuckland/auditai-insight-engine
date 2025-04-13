@@ -43,16 +43,33 @@ export type SuggestResponse = {
 // Update the API base URL to use the Remix API routes
 const API_BASE_URL = "/api";
 
+// Helper function to get shop domain from localStorage or URL
+const getShopDomain = (): string | null => {
+  // First try localStorage
+  const storedShop = localStorage.getItem('shopDomain');
+  if (storedShop) return storedShop;
+  
+  // Then try URL query parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('shop');
+};
+
 export async function crawlPage(url: string): Promise<CrawlResponse> {
   try {
     console.log("Crawling page:", url);
+    
+    const shopDomain = getShopDomain();
+    const payload = { 
+      url,
+      shop: shopDomain // Include shop domain in the payload
+    };
     
     const response = await fetch(`${API_BASE_URL}/crawl`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ url }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -96,6 +113,8 @@ export async function fetchSuggestions(
   try {
     console.log("Fetching suggestions for:", data.page_url);
     
+    const shopDomain = getShopDomain();
+    
     const response = await fetch(`${API_BASE_URL}/suggest`, {
       method: "POST",
       headers: {
@@ -103,7 +122,8 @@ export async function fetchSuggestions(
       },
       body: JSON.stringify({ 
         html: html || "",
-        goal: data.goal
+        goal: data.goal,
+        shop: shopDomain // Include shop domain in the payload
       }),
     });
 
@@ -145,12 +165,18 @@ export async function fetchVariants(data: VariantRequest): Promise<Suggestion> {
   try {
     console.log("Fetching variants for suggestion:", data.suggestion_id);
     
+    const shopDomain = getShopDomain();
+    const payload = {
+      ...data,
+      shop: shopDomain // Include shop domain in the payload
+    };
+    
     const response = await fetch(`${API_BASE_URL}/variants`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
