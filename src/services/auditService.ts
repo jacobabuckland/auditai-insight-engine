@@ -40,8 +40,8 @@ export type SuggestResponse = {
   }>;
 };
 
-// Update the API base URL to use the live preview URL
-const API_BASE_URL = "https://preview--auditai-insight-engine.lovable.app";
+// Update the API base URL to use the Remix API routes
+const API_BASE_URL = "/api";
 
 export async function crawlPage(url: string): Promise<CrawlResponse> {
   try {
