@@ -1,3 +1,11 @@
+
+import { redirect } from "@remix-run/node";
+
+export const loader = async () => {
+  // Redirect to the embedded app route
+  return redirect("/app");
+};
+
 export default function Index() {
   return (
     <iframe
@@ -7,8 +15,7 @@ export default function Index() {
         height: "100vh",
         border: "none",
       }}
-      title="AuditAI CRO Assistant"
+      title="ConvertIQ CRO Assistant"
     />
   );
 }
-
