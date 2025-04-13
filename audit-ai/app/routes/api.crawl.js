@@ -9,32 +9,55 @@ import { authenticate } from "~/shopify.server";
  */
 export const action = async ({ request }) => {
   try {
+    console.log("⚡ Received crawl request");
+    
     // Authenticate the request and get the session
     const { session } = await authenticate.admin(request);
     const body = await request.json();
-
-    // Forward the request to our backend service
-    const res = await fetch("https://auditai-insight-engine.onrender.com/crawl", {
+    
+    // Log the request body for debugging
+    console.log("📦 Request body:", JSON.stringify(body));
+    
+    // Ensure shop is included from frontend
+    const shopDomain = body.shop || session.shop; 
+    
+    // Forward the request to our backend service with the shop domain
+    const backendUrl = "https://auditai-insight-engine.onrender.com/crawl";
+    console.log(`🔄 Forwarding request to: ${backendUrl}`);
+    
+    const res = await fetch(backendUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Shop-Domain": session.shop, // Include shop domain for tracking/logging
+        "X-Shop-Domain": shopDomain,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        ...body,
+        shop: shopDomain // Ensure shop is passed to backend
+      }),
     });
 
-    // Check if the request was successful
+    // Get the status code from the backend response
+    const statusCode = res.status;
+    console.log(`📊 Backend response status: ${statusCode}`);
+
+    // If the request was not successful, handle the error
     if (!res.ok) {
       const errorText = await res.text();
-      console.error("Crawl API error:", errorText);
-      return json({ error: "Crawl failed" }, { status: 500 });
+      console.error(`❌ Crawl API error [${statusCode}]:`, errorText);
+      return json({ success: false, error: "Crawl failed", details: errorText }, { status: statusCode });
     }
 
-    // Return the JSON response from the backend
+    // Return the JSON response from the backend with its status code
     const data = await res.json();
-    return json(data);
+    console.log("✅ Crawl successful, returning data to frontend");
+    return json({ ...data, success: true }, { status: statusCode });
   } catch (error) {
-    console.error("Error in crawl API:", error);
-    return json({ error: "Crawl failed" }, { status: 500 });
+    console.error("💥 Unhandled error in crawl API:", error);
+    return json({ 
+      success: false, 
+      error: "Server error", 
+      details: error.message 
+    }, { status: 500 });
   }
 };
