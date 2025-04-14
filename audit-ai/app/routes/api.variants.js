@@ -14,7 +14,7 @@ export const action = async ({ request }) => {
     const body = await request.json();
 
     // Forward the request to our backend service
-    const res = await fetch("https://auditai-insight-engine.onrender.com/variants", {
+    const res = await fetch("https://auditai-insight-engine-1.onrender.com/variants", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

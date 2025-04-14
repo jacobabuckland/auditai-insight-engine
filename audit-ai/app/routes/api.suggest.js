@@ -22,7 +22,7 @@ export const action = async ({ request }) => {
     const shopDomain = body.shop || session.shop;
     
     // Forward the request to our backend service
-    const backendUrl = "https://auditai-insight-engine.onrender.com/suggest";
+    const backendUrl = "https://auditai-insight-engine-1.onrender.com/suggest";
     console.log(`🔄 Forwarding request to: ${backendUrl}`);
     
     const res = await fetch(backendUrl, {
