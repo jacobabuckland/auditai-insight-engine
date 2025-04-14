@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   BlockStack,
@@ -61,7 +60,6 @@ export function SuggestionReviewEmbed({ shopDomain }) {
       return;
     }
     
-    // Construct the full URL using the shop domain and selected path
     const crawlUrl = `https://${shopDomain}${selectedPath}`;
     console.log("Form submitted with URL:", crawlUrl);
     
@@ -69,12 +67,11 @@ export function SuggestionReviewEmbed({ shopDomain }) {
     setError(null);
     
     try {
-      // Updated to use the correct backend URL without /api prefix
-      const response = await fetch('https://auditai-insight-engine.onrender.com/crawl', {
+      const response = await fetch('https://auditai-insight-engine-1.onrender.com/crawl', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Shop-Domain': shopDomain, // Include shop domain in header
+          'X-Shop-Domain': shopDomain,
         },
         body: JSON.stringify({ url: crawlUrl, shop: shopDomain }),
       });

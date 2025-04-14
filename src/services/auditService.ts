@@ -40,7 +40,7 @@ export type SuggestResponse = {
 };
 
 // Update API base URL to use the direct Render endpoint without /api
-const API_BASE_URL = "https://auditai-insight-engine.onrender.com";
+const API_BASE_URL = "https://auditai-insight-engine-1.onrender.com";
 
 // Helper function to verify shop domain is available
 const verifyShopDomain = (shopDomain: string | null): boolean => {
