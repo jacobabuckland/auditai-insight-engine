@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/use-toast";
 
 export type AuditFormData = {
@@ -40,8 +39,8 @@ export type SuggestResponse = {
   }>;
 };
 
-// Update API base URL to use the direct Render endpoint
-const API_BASE_URL = "https://auditai-insight-engine.onrender.com/api";
+// Update API base URL to use the direct Render endpoint without /api
+const API_BASE_URL = "https://auditai-insight-engine.onrender.com";
 
 // Helper function to verify shop domain is available
 const verifyShopDomain = (shopDomain: string | null): boolean => {

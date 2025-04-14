@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from backend.common.models import CrawlRequest, PageData
@@ -6,8 +7,8 @@ from urllib.parse import urlparse
 import logging
 import traceback
 
-# ✅ Updated prefix to match frontend expectations
-router = APIRouter(prefix="/api")
+# Removed prefix to match frontend expectations
+router = APIRouter()
 logger = logging.getLogger(__name__)
 
 def is_valid_url(url: str) -> bool:
@@ -20,12 +21,12 @@ def crawl_page(request: CrawlRequest):
         return JSONResponse(status_code=400, content={"error": "Invalid URL"})
     
     try:
-        # ✅ Log shop domain to associate the crawl
+        # Log shop domain to associate the crawl
         logger.info(f"🔍 Crawling for shop: {request.shop} | URL: {request.url}")
 
         result = scrape_page(request.url)
 
-        # ✅ You could store or tag result here with shop for future analytics/logging
+        # Store or tag result with shop for future analytics/logging
         logger.info(f"✅ Crawl completed for shop: {request.shop} | URL: {request.url}")
         return PageData(**result)
     except Exception as e:
@@ -35,4 +36,3 @@ def crawl_page(request: CrawlRequest):
             status_code=500,
             content={"error": f"Crawl failed: {str(e)}"}
         )
-

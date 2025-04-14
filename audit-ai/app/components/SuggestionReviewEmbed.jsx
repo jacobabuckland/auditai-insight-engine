@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   BlockStack,
@@ -68,8 +69,8 @@ export function SuggestionReviewEmbed({ shopDomain }) {
     setError(null);
     
     try {
-      // Call the backend directly using the Render endpoint
-      const response = await fetch('https://auditai-insight-engine.onrender.com/api/crawl', {
+      // Updated to use the correct backend URL without /api prefix
+      const response = await fetch('https://auditai-insight-engine.onrender.com/crawl', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
