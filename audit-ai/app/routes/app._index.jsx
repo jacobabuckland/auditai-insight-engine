@@ -1,10 +1,7 @@
 
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { 
-  Page,
-  TitleBar
-} from "@shopify/polaris";
+import { Page, TitleBar } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { SuggestionReviewEmbed } from "../components/SuggestionReviewEmbed";
 
