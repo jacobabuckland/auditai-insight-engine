@@ -1,14 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routes import crawl 
-app.include_router(crawl.router)
+from backend.routes import suggest, crawl, debug_suggest, test_gpt
 
+# ✅ Define app first
 app = FastAPI(
     title="AuditAI Insight Engine",
     version="1.0.0",
     description="Backend API for CRO suggestion and crawling"
 )
 
+# ✅ Then set up middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,13 +18,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/api/health")
+# ✅ Optional health check
+@app.get("/health")
 def health_check():
     return {"status": "ok"}
 
-# ✅ Mounted under /api
-app.include_router(suggest.router, prefix="/api")
-app.include_router(crawl.router, prefix="/api")
-app.include_router(debug_suggest.router, prefix="/api")
-app.include_router(test_gpt.router, prefix="/api")
-
+# ✅ Finally, include routers
+app.include_router(suggest.router)
+app.include_router(crawl.router)
+app.include_router(debug_suggest.router)
+app.include_router(test_gpt.router)
