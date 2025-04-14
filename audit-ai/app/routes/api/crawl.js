@@ -36,7 +36,7 @@ export const action = async ({ request }) => {
 
     // Forward the request to our backend service
     console.log(`🔄 Forwarding request to FastAPI backend`);
-    const backendRes = await fetch("https://auditai-insight-engine-1.onrender.com/api/crawl", {
+    const backendRes = await fetch("https://auditai-insight-engine-1.onrender.com/crawl", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
