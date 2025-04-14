@@ -1,15 +1,29 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useShop } from '@/contexts/ShopContext';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface ShopRequiredProps {
   children: React.ReactNode;
+  redirectTo?: string;
 }
 
-export const ShopRequired: React.FC<ShopRequiredProps> = ({ children }) => {
+export const ShopRequired: React.FC<ShopRequiredProps> = ({ 
+  children, 
+  redirectTo = '/suggestions' 
+}) => {
   const { shopDomain, isShopLoading } = useShop();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // If shop domain is available and not loading, redirect to the suggestions page
+    if (shopDomain && !isShopLoading) {
+      console.log('Shop domain available, redirecting to:', redirectTo);
+      navigate(redirectTo);
+    }
+  }, [shopDomain, isShopLoading, redirectTo, navigate]);
 
   if (isShopLoading) {
     return (
