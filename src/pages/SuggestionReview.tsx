@@ -9,6 +9,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { 
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription
+} from "@/components/ui/card";
+import { 
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell
+} from "@/components/ui/table";
 import SuggestionCard from "@/components/SuggestionCard";
 import { Suggestion } from "@/services/auditService";
 import { useShop } from "@/contexts/ShopContext";
@@ -43,6 +58,18 @@ const MOCK_SUGGESTIONS: Suggestion[] = [
   },
 ];
 
+// New type for audit results
+type AuditResult = {
+  url: string;
+  title: string;
+  html?: string;
+  headings?: string[];
+  ctas?: string[];
+  forms?: string[];
+  page_type?: string;
+  screenshot_url?: string;
+};
+
 const SuggestionReview = () => {
   const navigate = useNavigate();
   const { shopDomain } = useShop();
@@ -51,6 +78,8 @@ const SuggestionReview = () => {
   const [pageOptions, setPageOptions] = useState(DEFAULT_OPTIONS);
   const [isLoading, setIsLoading] = useState(false);
   const [isRunningAudit, setIsRunningAudit] = useState(false);
+  const [auditResult, setAuditResult] = useState<AuditResult | null>(null);
+  const [auditError, setAuditError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPageOptions = async () => {
@@ -110,6 +139,9 @@ const SuggestionReview = () => {
       return;
     }
     
+    // Clear previous results and set loading state
+    setAuditResult(null);
+    setAuditError(null);
     setIsRunningAudit(true);
     
     try {
@@ -132,9 +164,12 @@ const SuggestionReview = () => {
       const data = await response.json();
       console.log("Audit response:", data);
       
+      // Store the audit result
+      setAuditResult(data);
+      
       toast({
         title: "Success",
-        description: "Audit started successfully!",
+        description: "Audit completed successfully!",
       });
       
       // If the API returns suggestions directly, update them
@@ -143,6 +178,7 @@ const SuggestionReview = () => {
       }
     } catch (error) {
       console.error("Failed to run audit:", error);
+      setAuditError("Audit failed to return results.");
       toast({
         title: "Error",
         description: "Audit failed. Please try again.",
@@ -151,6 +187,29 @@ const SuggestionReview = () => {
     } finally {
       setIsRunningAudit(false);
     }
+  };
+
+  // Helper function to render a list of items in a card
+  const renderListCard = (title: string, items: string[] = [], icon?: React.ReactNode) => {
+    if (!items || items.length === 0) return null;
+    
+    return (
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            {icon}
+            {title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2">
+            {items.map((item, index) => (
+              <li key={index} className="bg-muted/50 p-2 rounded-md text-sm">{item}</li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+    );
   };
 
   return (
@@ -196,6 +255,64 @@ const SuggestionReview = () => {
           "Run Audit"
         )}
       </Button>
+
+      {auditError && (
+        <div className="bg-destructive/20 border border-destructive text-destructive p-4 rounded-lg mb-6">
+          {auditError}
+        </div>
+      )}
+      
+      {auditResult && (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Audit Summary</CardTitle>
+            <CardDescription>
+              Results for <span className="font-bold">{auditResult.url}</span>
+              {auditResult.page_type && (
+                <span> (Page Type: <span className="font-bold capitalize">{auditResult.page_type}</span>)</span>
+              )}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {auditResult.screenshot_url && (
+              <div className="mb-6">
+                <h3 className="text-lg font-medium mb-2">Page Screenshot</h3>
+                <img 
+                  src={auditResult.screenshot_url} 
+                  alt="Page Screenshot" 
+                  className="w-full max-w-3xl rounded-lg border shadow-sm" 
+                />
+              </div>
+            )}
+            
+            <h3 className="text-lg font-medium mb-2">Page Information</h3>
+            <Table className="mb-6">
+              <TableBody>
+                <TableRow>
+                  <TableCell className="font-medium">Title</TableCell>
+                  <TableCell>{auditResult.title}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">URL</TableCell>
+                  <TableCell>{auditResult.url}</TableCell>
+                </TableRow>
+                {auditResult.page_type && (
+                  <TableRow>
+                    <TableCell className="font-medium">Page Type</TableCell>
+                    <TableCell className="capitalize">{auditResult.page_type}</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {renderListCard("Headings", auditResult.headings)}
+              {renderListCard("Call to Actions", auditResult.ctas)}
+              {renderListCard("Forms", auditResult.forms)}
+            </div>
+          </CardContent>
+        </Card>
+      )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {suggestions.map((suggestion) => (
