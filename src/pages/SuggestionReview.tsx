@@ -13,18 +13,13 @@ import SuggestionCard from "@/components/SuggestionCard";
 import { Suggestion } from "@/services/auditService";
 import { useShop } from "@/contexts/ShopContext";
 import { toast } from "@/components/ui/use-toast";
+import { Loader2 } from "lucide-react";
 
-const pageOptions = [
-  { label: "Home Page", value: "/" },
-  { label: "Product Page: /products/example", value: "/products/example" },
-  { label: "Collection Page: /collections/sale", value: "/collections/sale" },
-  { label: "Cart Page", value: "/cart" },
-  { label: "Checkout Page", value: "/checkout" },
-];
-
-// Default option to show while loading
+// Updated page options with real URLs
 const DEFAULT_OPTIONS = [
-  { label: "Home Page", value: "/" },
+  { label: "Home Page", value: "https://www.convertiq.shop/" },
+  { label: "Product Catalogue", value: "https://www.convertiq.shop/products" },
+  { label: "Contact Page", value: "https://www.convertiq.shop/pages/contact" },
 ];
 
 const MOCK_SUGGESTIONS: Suggestion[] = [
@@ -52,16 +47,16 @@ const SuggestionReview = () => {
   const navigate = useNavigate();
   const { shopDomain } = useShop();
   const [suggestions, setSuggestions] = useState<Suggestion[]>(MOCK_SUGGESTIONS);
-  const [selectedPath, setSelectedPath] = useState<string>("/");
+  const [selectedUrl, setSelectedUrl] = useState<string>("https://www.convertiq.shop/");
   const [pageOptions, setPageOptions] = useState(DEFAULT_OPTIONS);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRunningAudit, setIsRunningAudit] = useState(false);
 
   useEffect(() => {
     const fetchPageOptions = async () => {
       if (!shopDomain) return;
 
       try {
-        setIsLoading(true);
         const response = await fetch(`/api/choices`);
         
         if (!response.ok) {
@@ -72,8 +67,7 @@ const SuggestionReview = () => {
         
         if (data.options && data.options.length > 0) {
           setPageOptions(data.options);
-          // Set default selection to home page
-          setSelectedPath(data.options[0].value);
+          setSelectedUrl(data.options[0].value);
         }
       } catch (error) {
         console.error("Error fetching page options:", error);
@@ -82,8 +76,6 @@ const SuggestionReview = () => {
           description: "Failed to load page options. Using defaults.",
           variant: "destructive",
         });
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -96,10 +88,10 @@ const SuggestionReview = () => {
 
   const handleTagToggle = (suggestionId: string, tagId: string) => {
     console.log(`Toggling tag ${tagId} for suggestion ${suggestionId}`);
-    // Here you would implement the logic to update the tag status
+    // Logic to update tag status
   };
 
-  const handleSubmit = () => {
+  const handleRunAudit = async () => {
     if (!shopDomain) {
       toast({
         title: "Error",
@@ -109,7 +101,7 @@ const SuggestionReview = () => {
       return;
     }
     
-    if (!selectedPath) {
+    if (!selectedUrl) {
       toast({
         title: "Error",
         description: "Please select a page to audit.",
@@ -118,13 +110,47 @@ const SuggestionReview = () => {
       return;
     }
     
-    // Construct the full URL using the shop domain and selected path
-    const crawlUrl = `https://${shopDomain}${selectedPath}`;
-    console.log("Form submitted with URL:", crawlUrl);
+    setIsRunningAudit(true);
     
-    // Here you would implement the form submission logic sending the crawlUrl
-    // This would typically use the crawlPage function from auditService.ts
-    // For example: crawlPage(crawlUrl, shopDomain)
+    try {
+      const response = await fetch("https://auditai-insight-engine-1.onrender.com/crawl", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shop-Domain": shopDomain
+        },
+        body: JSON.stringify({
+          url: selectedUrl,
+          shop: shopDomain
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("Audit response:", data);
+      
+      toast({
+        title: "Success",
+        description: "Audit started successfully!",
+      });
+      
+      // If the API returns suggestions directly, update them
+      if (data.suggestions && Array.isArray(data.suggestions)) {
+        setSuggestions(data.suggestions);
+      }
+    } catch (error) {
+      console.error("Failed to run audit:", error);
+      toast({
+        title: "Error",
+        description: "Audit failed. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRunningAudit(false);
+    }
   };
 
   return (
@@ -139,9 +165,9 @@ const SuggestionReview = () => {
           Page to audit
         </label>
         <Select
-          value={selectedPath}
-          onValueChange={setSelectedPath}
-          disabled={isLoading}
+          value={selectedUrl}
+          onValueChange={setSelectedUrl}
+          disabled={isRunningAudit}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder={isLoading ? "Loading options..." : "Select a page type"} />
@@ -156,8 +182,19 @@ const SuggestionReview = () => {
         </Select>
       </div>
       
-      <Button onClick={handleSubmit} className="mb-6" disabled={isLoading || !selectedPath}>
-        Run Audit
+      <Button 
+        onClick={handleRunAudit} 
+        className="mb-6" 
+        disabled={isRunningAudit || !selectedUrl}
+      >
+        {isRunningAudit ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Running audit...
+          </>
+        ) : (
+          "Run Audit"
+        )}
       </Button>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
