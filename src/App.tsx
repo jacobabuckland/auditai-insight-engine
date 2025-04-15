@@ -23,7 +23,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Navigate to="/suggestions" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<AuditDashboard />} />
             <Route path="/shopify-auth" element={<ShopifyAuth />} />
