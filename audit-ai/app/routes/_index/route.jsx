@@ -1,3 +1,4 @@
+
 import { json, redirect } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 
@@ -9,7 +10,7 @@ export const loader = async ({ request }) => {
     return json({ error: "Missing store information" });
   }
 
-  // Optional: Add validation or logging if needed
+  // Pass the shop parameter to ensure it's available in the iframe
   return json({ shop });
 };
 
@@ -30,7 +31,7 @@ export default function Index() {
 
   return (
     <iframe
-      src={`https://preview--auditai-insight-engine.lovable.app?shop=${shop}`}
+      src={`https://preview--auditai-insight-engine.lovable.app/suggestions?shop=${shop}`}
       style={{
         width: "100%",
         height: "100vh",

@@ -43,16 +43,13 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setIsShopLoading(false);
         } else {
           console.warn("No shop domain found in URL or localStorage");
-          toast({
-            title: "Missing Store Information",
-            description: "Unable to detect your Shopify store. Please refresh or contact support.",
-            variant: "destructive",
-          });
+          // Don't show toast here as it can be distracting
           setIsShopLoading(false);
         }
       }
     };
 
+    // Call immediately on mount
     extractShopFromUrl();
 
     // Listen for URL changes

@@ -1,14 +1,17 @@
 
 import { json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, redirect } from "@remix-run/react";
 import { Page, TitleBar } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { SuggestionReviewEmbed } from "../components/SuggestionReviewEmbed";
 
 export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
+  const shopDomain = session?.shop || "";
+  
+  // If we have a valid shop domain, return it
   return json({
-    shopDomain: session?.shop || "",
+    shopDomain
   });
 };
 

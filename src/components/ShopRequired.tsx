@@ -18,10 +18,10 @@ export const ShopRequired: React.FC<ShopRequiredProps> = ({
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If shop domain is available and not loading, redirect to the suggestions page
+    // If shop domain is available and not loading, redirect to suggestions immediately
     if (shopDomain && !isShopLoading) {
-      console.log('Shop domain available, redirecting to:', redirectTo);
-      navigate(redirectTo);
+      console.log('Shop domain available in ShopRequired, redirecting to:', redirectTo);
+      navigate(redirectTo, { replace: true });
     }
   }, [shopDomain, isShopLoading, redirectTo, navigate]);
 
