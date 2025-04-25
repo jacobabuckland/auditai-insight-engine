@@ -56,6 +56,30 @@ const MOCK_SUGGESTIONS: Suggestion[] = [
   },
 ];
 
+const MOCK_AUDIT_HISTORY = [
+  {
+    id: "1",
+    pageType: "Home",
+    url: "https://www.convertiq.shop/",
+    date: "2025-04-24T15:30:00Z",
+    suggestionCount: 5
+  },
+  {
+    id: "2",
+    pageType: "Product",
+    url: "https://www.convertiq.shop/products/example",
+    date: "2025-04-23T10:15:00Z",
+    suggestionCount: 3
+  },
+  {
+    id: "3",
+    pageType: "Contact",
+    url: "https://www.convertiq.shop/contact",
+    date: "2025-04-22T09:45:00Z",
+    suggestionCount: 2
+  }
+];
+
 type AuditResult = {
   url: string;
   title: string;
@@ -183,6 +207,16 @@ const SuggestionReview = () => {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   const renderListCard = (title: string, items: string[] = [], icon?: React.ReactNode) => {
     if (!items || items.length === 0) return null;
     
@@ -276,28 +310,38 @@ const SuggestionReview = () => {
             <CardDescription>Your recent store audits</CardDescription>
           </CardHeader>
           <CardContent>
-            {auditResult ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Page</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Date</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Page Type</TableHead>
+                  <TableHead>URL</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="text-center">Suggestions</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {MOCK_AUDIT_HISTORY.map((audit) => (
+                  <TableRow key={audit.id}>
+                    <TableCell className="font-medium">{audit.pageType}</TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      {audit.url}
+                    </TableCell>
+                    <TableCell>{formatDate(audit.date)}</TableCell>
+                    <TableCell className="text-center">{audit.suggestionCount}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => console.log('View suggestions for:', audit.id)}
+                      >
+                        View Suggestions
+                      </Button>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>{auditResult.url}</TableCell>
-                    <TableCell className="capitalize">{auditResult.page_type || 'Unknown'}</TableCell>
-                    <TableCell>{new Date().toLocaleDateString()}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                No audits run yet. Start by selecting a page above.
-              </div>
-            )}
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
 
