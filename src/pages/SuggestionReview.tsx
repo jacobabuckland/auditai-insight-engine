@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -28,7 +28,8 @@ import SuggestionCard from "@/components/SuggestionCard";
 import { Suggestion } from "@/services/auditService";
 import { useShop } from "@/contexts/ShopContext";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2, FileText } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { AuditWizard } from "@/components/AuditWizard";
 
 const DEFAULT_OPTIONS = [
   { label: "Home Page", value: "https://www.convertiq.shop/" },
@@ -102,6 +103,7 @@ const SuggestionReview = () => {
   const [isRunningAudit, setIsRunningAudit] = useState(false);
   const [auditResult, setAuditResult] = useState<AuditResult | null>(null);
   const [auditError, setAuditError] = useState<string | null>(null);
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   useEffect(() => {
     const fetchPageOptions = async () => {
@@ -242,6 +244,8 @@ const SuggestionReview = () => {
 
   return (
     <div className="bg-background px-6">
+      <AuditWizard open={wizardOpen} onOpenChange={setWizardOpen} />
+      
       <section className="relative bg-gradient-to-r from-primary/10 to-primary/5 border-b">
         <div className="container mx-auto py-8 sm:px-6 lg:px-8">
           <div className="text-center space-y-4">
@@ -252,7 +256,11 @@ const SuggestionReview = () => {
               Run audits, review suggestions, and optimise your store for conversions.
             </p>
             <div className="mt-8 flex justify-center gap-4">
-              <Button size="lg" className="gap-2">
+              <Button 
+                size="lg" 
+                className="gap-2"
+                onClick={() => setWizardOpen(true)}
+              >
                 <FileText className="h-4 w-4" />
                 Start New Audit
               </Button>
