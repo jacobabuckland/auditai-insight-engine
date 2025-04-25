@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -244,10 +245,10 @@ const SuggestionReview = () => {
       <section className="relative bg-gradient-to-r from-primary/10 to-primary/5 border-b">
         <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
           <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold tracking-tight text-primary sm:text-5xl">
+            <h1 className="text-2xl font-bold tracking-tight text-primary sm:text-3xl">
               Welcome to your CRO Assistant
             </h1>
-            <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+            <p className="mx-auto max-w-2xl text-sm text-muted-foreground">
               Run audits, review suggestions, and optimise your store for conversions.
             </p>
             <div className="mt-8 flex justify-center gap-4">
