@@ -241,9 +241,9 @@ const SuggestionReview = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background px-6">
       <section className="relative bg-gradient-to-r from-primary/10 to-primary/5 border-b">
-        <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
+        <div className="container mx-auto py-8 sm:px-6 lg:px-8">
           <div className="text-center space-y-4">
             <h1 className="text-2xl font-bold tracking-tight text-primary sm:text-3xl">
               Welcome to your CRO Assistant

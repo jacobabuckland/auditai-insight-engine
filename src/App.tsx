@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ShopProvider } from "./contexts/ShopContext";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "./components/AppSidebar";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuditDashboard from "./pages/AuditDashboard";
@@ -22,18 +24,24 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Navigate to="/suggestions" replace />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<AuditDashboard />} />
-            <Route path="/shopify-auth" element={<ShopifyAuth />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/suggestions" element={<SuggestionReview />} />
-            {/* Redirect to suggestions from dashboard for convenience */}
-            <Route path="/dashboard/suggestions" element={<Navigate to="/suggestions" replace />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <SidebarProvider>
+            <div className="min-h-screen flex w-full">
+              <AppSidebar />
+              <main className="flex-1">
+                <SidebarTrigger className="fixed top-4 left-4 z-50" />
+                <Routes>
+                  <Route path="/" element={<Navigate to="/suggestions" replace />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/dashboard" element={<AuditDashboard />} />
+                  <Route path="/shopify-auth" element={<ShopifyAuth />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/suggestions" element={<SuggestionReview />} />
+                  <Route path="/dashboard/suggestions" element={<Navigate to="/suggestions" replace />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </main>
+            </div>
+          </SidebarProvider>
         </BrowserRouter>
       </ShopProvider>
     </TooltipProvider>
