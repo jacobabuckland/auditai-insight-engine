@@ -2,13 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { 
   Card,
   CardContent,
@@ -270,49 +263,6 @@ const SuggestionReview = () => {
       </section>
 
       <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Run Page Audit</CardTitle>
-            <CardDescription>
-              Select a page from your store to analyze for conversion optimization opportunities
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="max-w-xs">
-              <Select
-                value={selectedUrl}
-                onValueChange={setSelectedUrl}
-                disabled={isRunningAudit}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={isLoading ? "Loading options..." : "Select a page type"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {pageOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <Button 
-              onClick={handleRunAudit} 
-              disabled={isRunningAudit || !selectedUrl}
-            >
-              {isRunningAudit ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Running audit...
-                </>
-              ) : (
-                "Run Audit"
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Audit History</CardTitle>
