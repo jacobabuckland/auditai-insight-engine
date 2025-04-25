@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -28,9 +27,8 @@ import SuggestionCard from "@/components/SuggestionCard";
 import { Suggestion } from "@/services/auditService";
 import { useShop } from "@/contexts/ShopContext";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, FileText } from "lucide-react";
 
-// Updated page options with real URLs
 const DEFAULT_OPTIONS = [
   { label: "Home Page", value: "https://www.convertiq.shop/" },
   { label: "Product Catalogue", value: "https://www.convertiq.shop/products" },
@@ -58,7 +56,6 @@ const MOCK_SUGGESTIONS: Suggestion[] = [
   },
 ];
 
-// New type for audit results
 type AuditResult = {
   url: string;
   title: string;
@@ -139,7 +136,6 @@ const SuggestionReview = () => {
       return;
     }
     
-    // Clear previous results and set loading state
     setAuditResult(null);
     setAuditError(null);
     setIsRunningAudit(true);
@@ -164,7 +160,6 @@ const SuggestionReview = () => {
       const data = await response.json();
       console.log("Audit response:", data);
       
-      // Store the audit result
       setAuditResult(data);
       
       toast({
@@ -172,7 +167,6 @@ const SuggestionReview = () => {
         description: "Audit completed successfully!",
       });
       
-      // If the API returns suggestions directly, update them
       if (data.suggestions && Array.isArray(data.suggestions)) {
         setSuggestions(data.suggestions);
       }
@@ -189,7 +183,6 @@ const SuggestionReview = () => {
     }
   };
 
-  // Helper function to render a list of items in a card
   const renderListCard = (title: string, items: string[] = [], icon?: React.ReactNode) => {
     if (!items || items.length === 0) return null;
     
@@ -213,115 +206,178 @@ const SuggestionReview = () => {
   };
 
   return (
-    <div className="container mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-4">Suggestion Review</h1>
-      <Button onClick={handleGoBack} className="mb-4">
-        Back to Dashboard
-      </Button>
-      
-      <div className="mb-6 max-w-xs">
-        <label htmlFor="page-select" className="block text-sm font-medium mb-2">
-          Page to audit
-        </label>
-        <Select
-          value={selectedUrl}
-          onValueChange={setSelectedUrl}
-          disabled={isRunningAudit}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder={isLoading ? "Loading options..." : "Select a page type"} />
-          </SelectTrigger>
-          <SelectContent>
-            {pageOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <Button 
-        onClick={handleRunAudit} 
-        className="mb-6" 
-        disabled={isRunningAudit || !selectedUrl}
-      >
-        {isRunningAudit ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Running audit...
-          </>
-        ) : (
-          "Run Audit"
-        )}
-      </Button>
-
-      {auditError && (
-        <div className="bg-destructive/20 border border-destructive text-destructive p-4 rounded-lg mb-6">
-          {auditError}
+    <div className="min-h-screen bg-background">
+      <section className="relative bg-gradient-to-r from-primary/10 to-primary/5 border-b">
+        <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
+          <div className="text-center space-y-4">
+            <h1 className="text-4xl font-bold tracking-tight text-primary sm:text-5xl">
+              Welcome to your CRO Assistant
+            </h1>
+            <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+              Run audits, review suggestions, and optimise your store for conversions.
+            </p>
+            <div className="mt-8 flex justify-center gap-4">
+              <Button size="lg" className="gap-2">
+                <FileText className="h-4 w-4" />
+                Start New Audit
+              </Button>
+            </div>
+          </div>
         </div>
-      )}
-      
-      {auditResult && (
+      </section>
+
+      <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Audit Summary</CardTitle>
+            <CardTitle>Run Page Audit</CardTitle>
             <CardDescription>
-              Results for <span className="font-bold">{auditResult.url}</span>
-              {auditResult.page_type && (
-                <span> (Page Type: <span className="font-bold capitalize">{auditResult.page_type}</span>)</span>
-              )}
+              Select a page from your store to analyze for conversion optimization opportunities
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            {auditResult.screenshot_url && (
-              <div className="mb-6">
-                <h3 className="text-lg font-medium mb-2">Page Screenshot</h3>
-                <img 
-                  src={auditResult.screenshot_url} 
-                  alt="Page Screenshot" 
-                  className="w-full max-w-3xl rounded-lg border shadow-sm" 
-                />
-              </div>
-            )}
-            
-            <h3 className="text-lg font-medium mb-2">Page Information</h3>
-            <Table className="mb-6">
-              <TableBody>
-                <TableRow>
-                  <TableCell className="font-medium">Title</TableCell>
-                  <TableCell>{auditResult.title}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">URL</TableCell>
-                  <TableCell>{auditResult.url}</TableCell>
-                </TableRow>
-                {auditResult.page_type && (
-                  <TableRow>
-                    <TableCell className="font-medium">Page Type</TableCell>
-                    <TableCell className="capitalize">{auditResult.page_type}</TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {renderListCard("Headings", auditResult.headings)}
-              {renderListCard("Call to Actions", auditResult.ctas)}
-              {renderListCard("Forms", auditResult.forms)}
+          <CardContent className="space-y-4">
+            <div className="max-w-xs">
+              <Select
+                value={selectedUrl}
+                onValueChange={setSelectedUrl}
+                disabled={isRunningAudit}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={isLoading ? "Loading options..." : "Select a page type"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {pageOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+            
+            <Button 
+              onClick={handleRunAudit} 
+              disabled={isRunningAudit || !selectedUrl}
+            >
+              {isRunningAudit ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Running audit...
+                </>
+              ) : (
+                "Run Audit"
+              )}
+            </Button>
           </CardContent>
         </Card>
-      )}
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {suggestions.map((suggestion) => (
-          <SuggestionCard
-            key={suggestion.id}
-            suggestion={suggestion}
-            onTagToggle={handleTagToggle}
-          />
-        ))}
+
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Audit History</CardTitle>
+            <CardDescription>Your recent store audits</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {auditResult ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Page</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>{auditResult.url}</TableCell>
+                    <TableCell className="capitalize">{auditResult.page_type || 'Unknown'}</TableCell>
+                    <TableCell>{new Date().toLocaleDateString()}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                No audits run yet. Start by selecting a page above.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="space-y-6">
+          <h2 className="text-2xl font-semibold tracking-tight">Latest Audit Suggestions</h2>
+          
+          {auditError && (
+            <div className="bg-destructive/20 border border-destructive text-destructive p-4 rounded-lg">
+              {auditError}
+            </div>
+          )}
+          
+          {auditResult && (
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Audit Summary</CardTitle>
+                <CardDescription>
+                  Results for <span className="font-bold">{auditResult.url}</span>
+                  {auditResult.page_type && (
+                    <span> (Page Type: <span className="font-bold capitalize">{auditResult.page_type}</span>)</span>
+                  )}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {auditResult.screenshot_url && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium mb-2">Page Screenshot</h3>
+                    <img 
+                      src={auditResult.screenshot_url} 
+                      alt="Page Screenshot" 
+                      className="w-full max-w-3xl rounded-lg border shadow-sm" 
+                    />
+                  </div>
+                )}
+                
+                <h3 className="text-lg font-medium mb-2">Page Information</h3>
+                <Table className="mb-6">
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">Title</TableCell>
+                      <TableCell>{auditResult.title}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">URL</TableCell>
+                      <TableCell>{auditResult.url}</TableCell>
+                    </TableRow>
+                    {auditResult.page_type && (
+                      <TableRow>
+                        <TableCell className="font-medium">Page Type</TableCell>
+                        <TableCell className="capitalize">{auditResult.page_type}</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {renderListCard("Headings", auditResult.headings)}
+                  {renderListCard("Call to Actions", auditResult.ctas)}
+                  {renderListCard("Forms", auditResult.forms)}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {!auditResult && !auditError && (
+            <div className="text-center py-8 text-muted-foreground">
+              Run an audit to see suggestions for improving your store's conversion rate.
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {suggestions.map((suggestion) => (
+              <SuggestionCard
+                key={suggestion.id}
+                suggestion={suggestion}
+                onTagToggle={handleTagToggle}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
