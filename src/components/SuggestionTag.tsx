@@ -1,5 +1,6 @@
 
 import React from "react";
+import { Badge } from "@/components/ui/badge";
 
 export interface SuggestionTagProps {
   tagId: string;
@@ -15,16 +16,14 @@ const SuggestionTag: React.FC<SuggestionTagProps> = ({
   onClick,
 }) => {
   return (
-    <button
+    <Badge
+      role="button"
       onClick={onClick}
-      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-        active
-          ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
-          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-      }`}
+      variant={active ? "default" : "secondary"}
+      className="cursor-pointer transition-colors hover:bg-secondary"
     >
       {label}
-    </button>
+    </Badge>
   );
 };
 
