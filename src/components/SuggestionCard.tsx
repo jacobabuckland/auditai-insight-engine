@@ -1,9 +1,10 @@
+
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Suggestion } from "@/services/auditService";
-import { Image, Gear, Info } from "lucide-react";
+import { Image, Settings, Info } from "lucide-react";
 import SuggestionTag from "./SuggestionTag";
 
 interface SuggestionCardProps {
@@ -29,7 +30,7 @@ const getSuggestionIcon = (title: string) => {
     return <Image className="h-5 w-5" />;
   }
   if (title.toLowerCase().includes("performance") || title.toLowerCase().includes("speed")) {
-    return <Gear className="h-5 w-5" />;
+    return <Settings className="h-5 w-5" />;
   }
   return <Info className="h-5 w-5" />;
 };
