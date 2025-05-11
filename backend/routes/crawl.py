@@ -16,7 +16,12 @@ def is_valid_url(url: str) -> bool:
 @router.post("/crawl", response_model=PageData)
 async def crawl_page(
     request: Request,
-    x_shop_domain: str = Header(default=None, alias="X-Shop-Domain")
+    from backend.common.models import ShopSession
+...
+x_shop_domain: str = Header(..., alias="X-Shop-Domain")
+shop_session = ShopSession(shop_domain=x_shop_domain)
+...
+crawl_request.shop = shop_session.shop_domain
 ):
     try:
         body = await request.json()

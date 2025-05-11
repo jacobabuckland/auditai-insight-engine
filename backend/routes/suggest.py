@@ -9,7 +9,10 @@ logger = logging.getLogger(__name__)
 @router.post("/suggest")
 async def suggest(
     request: Request,
-    x_shop_domain: str = Header(default=None, alias="X-Shop-Domain")
+from backend.common.models import ShopSession
+...
+x_shop_domain: str = Header(..., alias="X-Shop-Domain")
+shop_session = ShopSession(shop_domain=x_shop_domain)
 ):
     try:
         body = await request.json()
@@ -52,3 +55,4 @@ async def suggest(
             status_code=500,
             content={"error": f"Suggestion generation failed: {str(e)}"}
         )
+        
