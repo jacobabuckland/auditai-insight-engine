@@ -30,3 +30,7 @@ class PageData(BaseModel):
     forms: List[str]
     page_type: Literal["home", "product", "category", "cart", "unknown"]
     screenshot_url: Optional[str] = None
+# Used for internal context passing (e.g. agents, utilities)
+class ShopSession(BaseModel):
+    shop_domain: str
+    access_token: Optional[str] = None
