@@ -39,10 +39,8 @@ export type SuggestResponse = {
   }>;
 };
 
-// Update API base URL to use the direct Render endpoint without /api
 const API_BASE_URL = "https://auditai-insight-engine-1.onrender.com";
 
-// Helper function to verify shop domain is available
 const verifyShopDomain = (shopDomain: string | null): boolean => {
   if (!shopDomain) {
     toast({
@@ -58,21 +56,18 @@ const verifyShopDomain = (shopDomain: string | null): boolean => {
 export async function crawlPage(url: string, shopDomain: string | null): Promise<CrawlResponse> {
   try {
     console.log("Crawling page:", url, "for shop:", shopDomain);
-    
+
     if (!verifyShopDomain(shopDomain)) {
       return { success: false };
     }
-    
-    const payload = { 
-      url,
-      shop: shopDomain
-    };
-    
+
+    const payload = { url };
+
     const response = await fetch(`${API_BASE_URL}/crawl`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(shopDomain && { "X-Shop-Domain": shopDomain }), // Include shop domain in header
+        ...(shopDomain && { "X-Shop-Domain": shopDomain }),
       },
       body: JSON.stringify(payload),
     });
@@ -83,19 +78,14 @@ export async function crawlPage(url: string, shopDomain: string | null): Promise
 
     const data = await response.json();
     console.log("Crawl response:", data);
-    
-    // Check if data has the expected PageData structure
-    if (data.url && data.title) {
-      return {
-        success: true,
-        page_type: data.page_type || "unknown",
-        screenshot_path: data.screenshot_url || "",
-        html: data.html || "", // Store the HTML content if available
-        ...data
-      };
-    } else {
-      throw new Error("Invalid response format from crawl endpoint");
-    }
+
+    return {
+      success: true,
+      page_type: data.page_type || "unknown",
+      screenshot_path: data.screenshot_url || "",
+      html: data.html || "",
+      ...data,
+    };
   } catch (error) {
     console.error("Failed to crawl page:", error);
     toast({
@@ -103,11 +93,8 @@ export async function crawlPage(url: string, shopDomain: string | null): Promise
       description: "Failed to crawl the page. Please try again later or contact support.",
       variant: "destructive",
     });
-    
-    // Return a failed response
-    return {
-      success: false
-    };
+
+    return { success: false };
   }
 }
 
@@ -118,20 +105,20 @@ export async function fetchSuggestions(
 ): Promise<{ rationale: string; suggestions: Suggestion[] }> {
   try {
     console.log("Fetching suggestions for:", data.page_url, "for shop:", shopDomain);
-    
+
     if (!verifyShopDomain(shopDomain)) {
       return { rationale: "Store detection failed", suggestions: [] };
     }
-    
+
     const response = await fetch(`${API_BASE_URL}/suggest`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(shopDomain && { "X-Shop-Domain": shopDomain }),
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         html: html || "",
         goal: data.goal,
-        shop: shopDomain
       }),
     });
 
@@ -141,8 +128,7 @@ export async function fetchSuggestions(
 
     const result = await response.json() as SuggestResponse;
     console.log("Suggestions response:", result);
-    
-    // Format the suggestions to match our frontend model and include the rationale
+
     if (result.suggestions && Array.isArray(result.suggestions)) {
       return {
         rationale: result.rationale || "No rationale provided",
@@ -151,10 +137,10 @@ export async function fetchSuggestions(
           title: s.text || "Suggestion",
           description: `${s.type} - ${s.target}`,
           impact: (s.impact || "medium").toLowerCase() as "high" | "medium" | "low"
-        }))
+        })),
       };
     }
-    
+
     return { rationale: "No rationale provided", suggestions: [] };
   } catch (error) {
     console.error("Failed to fetch suggestions:", error);
@@ -163,8 +149,7 @@ export async function fetchSuggestions(
       description: "Failed to get suggestions. Please try again.",
       variant: "destructive",
     });
-    
-    // Return empty array in case of error
+
     return { rationale: "Error fetching suggestions", suggestions: [] };
   }
 }
@@ -172,7 +157,7 @@ export async function fetchSuggestions(
 export async function fetchVariants(data: VariantRequest, shopDomain: string | null): Promise<Suggestion> {
   try {
     console.log("Fetching variants for suggestion:", data.suggestion_id, "for shop:", shopDomain);
-    
+
     if (!verifyShopDomain(shopDomain)) {
       return {
         id: "error",
@@ -181,16 +166,14 @@ export async function fetchVariants(data: VariantRequest, shopDomain: string | n
         impact: "low",
       };
     }
-    
-    const payload = {
-      ...data,
-      shop: shopDomain
-    };
-    
+
+    const payload = { ...data };
+
     const response = await fetch(`${API_BASE_URL}/variants`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(shopDomain && { "X-Shop-Domain": shopDomain }),
       },
       body: JSON.stringify(payload),
     });
@@ -209,8 +192,7 @@ export async function fetchVariants(data: VariantRequest, shopDomain: string | n
       description: "Failed to get suggestion variants. Please try again.",
       variant: "destructive",
     });
-    
-    // Return a placeholder suggestion in case of error
+
     return {
       id: "error",
       title: "Error fetching variant",
@@ -220,27 +202,19 @@ export async function fetchVariants(data: VariantRequest, shopDomain: string | n
   }
 }
 
-// Function to apply suggestions to HTML
 export function applyHtmlSuggestions(html: string, acceptedSuggestions: Suggestion[]): string {
-  // This is a simplified implementation 
-  // In a real application, you would implement actual DOM manipulation or regex replacement
   if (!html || acceptedSuggestions.length === 0) return html;
-  
+
   let modifiedHtml = html;
-  
-  // Add a simple visual indicator for each suggestion
-  // This is a placeholder implementation
+
   acceptedSuggestions.forEach(suggestion => {
-    // Highlight elements that might be affected by this suggestion
-    // This is just for demonstration - would be more sophisticated in production
     const highlightText = `<div class="bg-green-200 p-2 rounded my-2">
       <strong>Applied Suggestion:</strong> ${suggestion.title}
       <p>${suggestion.description}</p>
     </div>`;
-    
-    // For demo purposes, add the highlight at the top of the body
+
     modifiedHtml = modifiedHtml.replace('<body', `<body>${highlightText}`);
   });
-  
+
   return modifiedHtml;
 }
