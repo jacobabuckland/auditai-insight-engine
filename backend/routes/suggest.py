@@ -1,40 +1,54 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request, Header
 from fastapi.responses import JSONResponse
-from backend.gpt import call_gpt, build_prompt
-from backend.common.models import SuggestRequest, SuggestResponse
-from starlette.concurrency import run_in_threadpool
-import json
 import logging
+import traceback
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-@router.post("/suggest", response_model=SuggestResponse)
-async def suggest_cro_ideas(request: SuggestRequest):
+@router.post("/suggest")
+async def suggest(
+    request: Request,
+    x_shop_domain: str = Header(default=None, alias="X-Shop-Domain")
+):
     try:
-        # ✅ Log shop domain to track suggestions
-        logger.info(f"💡 Generating suggestions for shop: {request.shop}")
+        body = await request.json()
+        html = body.get("html")
+        goal = body.get("goal")
 
-        prompt = build_prompt(request.html, request.goal)
-        gpt_response = await run_in_threadpool(call_gpt, prompt)
+        if not html or not goal:
+            return JSONResponse(
+                status_code=400,
+                content={"error": "Missing HTML or goal"}
+            )
 
-        # ✅ Clean GPT output (in case it's wrapped in markdown)
-        if gpt_response.startswith("```json"):
-            gpt_response = gpt_response.replace("```json", "").replace("```", "").strip()
+        logger.info(f"💡 Suggestion request for shop: {x_shop_domain} | Goal: {goal}")
 
-        parsed = json.loads(gpt_response)
-        return SuggestResponse(**parsed)
+        # TODO: Replace with real AI logic
+        suggestions = [
+            {
+                "text": "Improve headline",
+                "type": "copy",
+                "target": "h1",
+                "impact": "high"
+            },
+            {
+                "text": "Add urgency to CTA",
+                "type": "cta",
+                "target": "button",
+                "impact": "medium"
+            }
+        ]
 
-    except json.JSONDecodeError as json_err:
-        logger.error(f"❌ Failed to decode GPT response for shop {request.shop}: {json_err}")
-        return SuggestResponse(
-            rationale="GPT returned invalid JSON",
-            suggestions=[]
-        )
+        return {
+            "rationale": f"Based on your goal: '{goal}', here are suggested changes.",
+            "suggestions": suggestions
+        }
 
     except Exception as e:
-        logger.exception(f"❌ Suggest endpoint failed for shop {request.shop}")
-        return SuggestResponse(
-            rationale="GPT call failed unexpectedly",
-            suggestions=[]
+        logger.error(f"❌ Suggest failed for shop {x_shop_domain}: {e}")
+        traceback.print_exc()
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Suggestion generation failed: {str(e)}"}
         )

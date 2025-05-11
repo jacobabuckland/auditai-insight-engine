@@ -1,5 +1,4 @@
-
-from fastapi import APIRouter
+from fastapi import APIRouter, Request, Header
 from fastapi.responses import JSONResponse
 from backend.common.models import CrawlRequest, PageData
 from backend.common.scraper import scrape_page
@@ -7,7 +6,6 @@ from urllib.parse import urlparse
 import logging
 import traceback
 
-# Removed prefix to match frontend expectations
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
@@ -16,21 +14,27 @@ def is_valid_url(url: str) -> bool:
     return all([parsed.scheme, parsed.netloc])
 
 @router.post("/crawl", response_model=PageData)
-def crawl_page(request: CrawlRequest):
-    if not is_valid_url(request.url):
-        return JSONResponse(status_code=400, content={"error": "Invalid URL"})
-    
+async def crawl_page(
+    request: Request,
+    x_shop_domain: str = Header(default=None, alias="X-Shop-Domain")
+):
     try:
-        # Log shop domain to associate the crawl
-        logger.info(f"🔍 Crawling for shop: {request.shop} | URL: {request.url}")
+        body = await request.json()
+        crawl_request = CrawlRequest(**body)
+        crawl_request.shop = x_shop_domain  # Inject shop into the model
 
-        result = scrape_page(request.url)
+        if not is_valid_url(crawl_request.url):
+            return JSONResponse(status_code=400, content={"error": "Invalid URL"})
 
-        # Store or tag result with shop for future analytics/logging
-        logger.info(f"✅ Crawl completed for shop: {request.shop} | URL: {request.url}")
+        logger.info(f"🔍 Crawling for shop: {crawl_request.shop} | URL: {crawl_request.url}")
+
+        result = scrape_page(crawl_request.url)
+
+        logger.info(f"✅ Crawl completed for shop: {crawl_request.shop} | URL: {crawl_request.url}")
         return PageData(**result)
+
     except Exception as e:
-        logger.error(f"❌ Crawl failed for shop {request.shop}: {e}")
+        logger.error(f"❌ Crawl failed for shop {x_shop_domain}: {e}")
         traceback.print_exc()
         return JSONResponse(
             status_code=500,
