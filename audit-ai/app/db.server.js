@@ -1,11 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "~/prisma.server";
 
-if (process.env.NODE_ENV !== "production") {
-  if (!global.prismaGlobal) {
-    global.prismaGlobal = new PrismaClient();
-  }
+export async function saveShop(shopDomain, accessToken) {
+  await prisma.shop.upsert({
+    where: { shopDomain },
+    update: { accessToken },
+    create: { shopDomain, accessToken },
+  });
 }
-
-const prisma = global.prismaGlobal ?? new PrismaClient();
-
-export default prisma;
