@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { PreviousPromptsSidebar } from './PreviousPromptsSidebar';
