@@ -2,12 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { PreviousPromptsSidebar } from './PreviousPromptsSidebar';
 import { Loader } from 'lucide-react';
 import { useShop } from '@/contexts/ShopContext';
+import { ChatInterface } from './ChatInterface';
 
 type PreviousPrompt = {
   id: string;
@@ -158,7 +159,7 @@ export const PlanGeneratorBar = () => {
           </div>
           
           {/* Results section */}
-          {(planResult || isLoading) && (
+          {(planResult || isLoading) ? (
             <div className="container mx-auto p-4 max-w-6xl">
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center p-8">
@@ -179,6 +180,8 @@ export const PlanGeneratorBar = () => {
                 </div>
               ) : null}
             </div>
+          ) : (
+            <ChatInterface />
           )}
         </div>
       </div>

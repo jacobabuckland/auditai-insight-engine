@@ -1,11 +1,11 @@
 
 import { ShopRequired } from '@/components/ShopRequired';
-import { ChatInterface } from '@/components/ChatInterface';
+import { PlanGeneratorBar } from '@/components/PlanGeneratorBar';
 
 export default function Index() {
   return (
     <ShopRequired redirectTo="/suggestions">
-      <ChatInterface />
+      <PlanGeneratorBar />
     </ShopRequired>
   );
 }
