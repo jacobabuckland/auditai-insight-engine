@@ -32,9 +32,10 @@ export const ChatInterface = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Scroll to bottom whenever messages change or loading state changes
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isLoading]);
 
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
@@ -49,6 +50,9 @@ export const ChatInterface = () => {
     
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
+    
+    // Ensure scroll happens after user message is added
+    setTimeout(scrollToBottom, 100);
     
     // Simulate AI processing delay
     setTimeout(() => {
