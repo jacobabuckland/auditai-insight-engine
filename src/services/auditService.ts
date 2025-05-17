@@ -53,6 +53,44 @@ const verifyShopDomain = (shopDomain: string | null): boolean => {
   return true;
 };
 
+// Added the fetchStrategyPlan function
+export async function fetchStrategyPlan(goal: string, shopDomain: string | null): Promise<any> {
+  try {
+    console.log("Fetching strategy plan for goal:", goal, "for shop:", shopDomain);
+    
+    if (!verifyShopDomain(shopDomain)) {
+      return { success: false, error: "Store detection failed" };
+    }
+
+    const response = await fetch(`${API_BASE_URL}/agent/plan`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(shopDomain && { "X-Shop-Domain": shopDomain }),
+      },
+      body: JSON.stringify({ goal }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch strategy plan");
+    }
+
+    const data = await response.json();
+    console.log("Strategy plan response:", data);
+    
+    return { success: true, ...data };
+  } catch (error) {
+    console.error("Failed to fetch strategy plan:", error);
+    toast({
+      title: "Error",
+      description: error instanceof Error ? error.message : "Failed to fetch strategy plan",
+      variant: "destructive",
+    });
+    
+    return { success: false, error: error instanceof Error ? error.message : "Failed to fetch strategy plan" };
+  }
+}
+
 export async function crawlPage(url: string, shopDomain: string | null): Promise<CrawlResponse> {
   try {
     console.log("Crawling page:", url, "for shop:", shopDomain);
