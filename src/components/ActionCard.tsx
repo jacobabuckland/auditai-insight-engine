@@ -11,6 +11,7 @@ interface ActionCardProps {
 
 export const ActionCard: React.FC<ActionCardProps> = ({ title, description }) => {
   const handlePreview = () => {
+    console.log(`Preview clicked for ${title}`);
     toast({
       title: "Preview",
       description: `Previewing: ${title}`,
@@ -18,6 +19,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({ title, description }) =>
   };
 
   const handleApply = () => {
+    console.log(`Apply clicked for ${title}`);
     toast({
       title: "Applied",
       description: `Action applied: ${title}`,
