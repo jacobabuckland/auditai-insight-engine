@@ -56,6 +56,19 @@ export const ChatInterface = () => {
       const aiResponse = generateAIResponse(content);
       setMessages(prev => [...prev, aiResponse]);
       setIsLoading(false);
+      
+      // Save the prompt to localStorage
+      try {
+        const previousPrompts = JSON.parse(localStorage.getItem('previousPrompts') || '[]');
+        const newPrompt = {
+          id: Date.now().toString(),
+          text: content,
+          createdAt: new Date(),
+        };
+        localStorage.setItem('previousPrompts', JSON.stringify([newPrompt, ...previousPrompts].slice(0, 20)));
+      } catch (error) {
+        console.error('Error saving prompt to localStorage:', error);
+      }
     }, 1500);
   };
 
@@ -178,7 +191,7 @@ export const ChatInterface = () => {
           {isLoading && (
             <div className="flex items-center p-4 bg-white rounded-lg shadow-sm my-4">
               <Loader className="h-5 w-5 animate-spin text-blue-500 mr-3" />
-              <span>Analyzing and generating strategy...</span>
+              <span>🧠 ConvertIQ is thinking...</span>
             </div>
           )}
           <div ref={messagesEndRef} />
