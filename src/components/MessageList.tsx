@@ -33,8 +33,8 @@ export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
             <p className="whitespace-pre-wrap">{message.content}</p>
           ) : (
             <div className="space-y-4">
-              <h2 className="font-semibold text-lg">🧠 AI Reasoning</h2>
-              <p className="whitespace-pre-wrap">{message.content}</p>
+              <h2 className="text-lg font-semibold">🧠 AI Reasoning</h2>
+              <p className="whitespace-pre-wrap bg-gray-50 p-4 rounded-md mb-6">{message.content}</p>
               
               {message.actions && message.actions.length > 0 && (
                 <div className="mt-6 space-y-6">
