@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { MessageType, ActionGroup } from '@/types/chat';
-import { fetchStrategyPlan } from '@/services/auditService';
+import { fetchStrategyPlan, StrategyResponse } from '@/services/strategyService';
 import { toast } from "@/components/ui/use-toast";
 
 interface ApiSuggestion {
