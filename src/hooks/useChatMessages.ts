@@ -80,7 +80,7 @@ export const useChatMessages = (shopDomain: string | null) => {
         });
       } else if (response.plan) {
         // If no structured suggestions but we have a plan, create a simple action group
-        const items = response.plan.split('\n\n').filter(Boolean).slice(0, 3);
+        const items = (response.plan as string).split('\n\n').filter(Boolean).slice(0, 3);
         
         categories.forEach((category, index) => {
           const actions = [{
