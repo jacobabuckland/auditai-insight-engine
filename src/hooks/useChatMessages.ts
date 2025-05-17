@@ -10,6 +10,7 @@ interface ApiSuggestion {
   title?: string;
   description?: string;
   rationale?: string;
+  impact?: string;
 }
 
 interface ApiResponse {
@@ -74,8 +75,17 @@ export const useChatMessages = (shopDomain: string | null) => {
       
       // Parse the response into action groups if suggestions exist
       if (apiResponse.suggestions && Array.isArray(apiResponse.suggestions)) {
+        // Sort suggestions by impact if available (high impact first)
+        const sortedSuggestions = [...apiResponse.suggestions].sort((a, b) => {
+          const impactOrder = { high: 0, medium: 1, low: 2 };
+          const impactA = (a.impact || 'medium').toLowerCase();
+          const impactB = (b.impact || 'medium').toLowerCase();
+          return (impactOrder[impactA as keyof typeof impactOrder] || 1) - 
+                 (impactOrder[impactB as keyof typeof impactOrder] || 1);
+        });
+        
         // Group suggestions by category
-        const groupedSuggestions = apiResponse.suggestions.reduce((acc: Record<string, ApiSuggestion[]>, suggestion: ApiSuggestion) => {
+        const groupedSuggestions = sortedSuggestions.reduce((acc: Record<string, ApiSuggestion[]>, suggestion: ApiSuggestion) => {
           const category = suggestion.category || 'Product';
           if (!acc[category]) {
             acc[category] = [];
