@@ -7,9 +7,9 @@ export const useChatMessages = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const addUserMessage = (content: string): MessageType => {
-    const userMessage = {
+    const userMessage: MessageType = {
       id: Date.now().toString(),
-      type: 'user',
+      type: 'user' as const,
       content,
       timestamp: new Date(),
     };
@@ -58,7 +58,7 @@ export const useChatMessages = () => {
 
     return {
       id: Date.now().toString(),
-      type: 'ai',
+      type: 'ai' as const,
       content: `Based on your goal to "${userInput}", I've analyzed your store data and identified several opportunities for improvement. The most impactful areas to focus on are product presentation, customer journey optimization, and post-purchase engagement.`,
       timestamp: new Date(),
       actions: actionGroups,
