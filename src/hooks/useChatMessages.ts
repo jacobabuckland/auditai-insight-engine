@@ -4,6 +4,23 @@ import { MessageType, ActionGroup } from '@/types/chat';
 import { fetchStrategyPlan } from '@/services/auditService';
 import { toast } from "@/components/ui/use-toast";
 
+interface ApiSuggestion {
+  category?: string;
+  text?: string;
+  title?: string;
+  description?: string;
+  rationale?: string;
+}
+
+interface ApiResponse {
+  success: boolean;
+  error?: string;
+  suggestions?: ApiSuggestion[];
+  plan?: string;
+  reasoning?: string;
+  rationale?: string;
+}
+
 export const useChatMessages = (shopDomain: string | null) => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -49,14 +66,16 @@ export const useChatMessages = (shopDomain: string | null) => {
         throw new Error(response.error || "Failed to generate strategy");
       }
       
+      const apiResponse = response as ApiResponse;
+      
       // Process the API response into action groups
       const categories = ['Product', 'Merchandising', 'Lifecycle', 'Marketing'];
       const actionGroups: ActionGroup[] = [];
       
       // Parse the response into action groups if suggestions exist
-      if (response.suggestions && Array.isArray(response.suggestions)) {
+      if (apiResponse.suggestions && Array.isArray(apiResponse.suggestions)) {
         // Group suggestions by category
-        const groupedSuggestions = response.suggestions.reduce((acc: Record<string, any[]>, suggestion: any) => {
+        const groupedSuggestions = apiResponse.suggestions.reduce((acc: Record<string, ApiSuggestion[]>, suggestion: ApiSuggestion) => {
           const category = suggestion.category || 'Product';
           if (!acc[category]) {
             acc[category] = [];
@@ -67,7 +86,7 @@ export const useChatMessages = (shopDomain: string | null) => {
         
         // Create action groups from grouped suggestions
         Object.entries(groupedSuggestions).forEach(([category, suggestions]) => {
-          const actions = suggestions.map((suggestion: any, index: number) => ({
+          const actions = suggestions.map((suggestion: ApiSuggestion, index: number) => ({
             id: `${category}-${index}`,
             title: suggestion.text || suggestion.title || 'Suggestion',
             description: suggestion.description || suggestion.rationale || '',
@@ -78,9 +97,9 @@ export const useChatMessages = (shopDomain: string | null) => {
             actions,
           });
         });
-      } else if (response.plan) {
+      } else if (apiResponse.plan) {
         // If no structured suggestions but we have a plan, create a simple action group
-        const items = (response.plan as string).split('\n\n').filter(Boolean).slice(0, 3);
+        const items = apiResponse.plan.split('\n\n').filter(Boolean).slice(0, 3);
         
         categories.forEach((category, index) => {
           const actions = [{
@@ -100,7 +119,7 @@ export const useChatMessages = (shopDomain: string | null) => {
       const aiResponse: MessageType = {
         id: Date.now().toString(),
         type: 'ai' as const,
-        content: response.reasoning || response.rationale || `Based on your goal to "${userInput}", I've analyzed your store data and identified several opportunities for improvement.`,
+        content: apiResponse.reasoning || apiResponse.rationale || `Based on your goal to "${userInput}", I've analyzed your store data and identified several opportunities for improvement.`,
         timestamp: new Date(),
         actions: actionGroups.length > 0 ? actionGroups : undefined,
       };
