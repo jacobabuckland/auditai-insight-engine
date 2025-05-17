@@ -14,6 +14,7 @@ import Login from "./pages/Login";
 import ShopifyAuth from "./pages/ShopifyAuth";
 import Settings from "./pages/Settings";
 import SuggestionReview from "./pages/SuggestionReview";
+import ChatStrategyPage from "./pages/ChatStrategyPage";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
                   <Route path="/shopify-auth" element={<ShopifyAuth />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/suggestions" element={<SuggestionReview />} />
+                  <Route path="/strategy-assistant" element={<ChatStrategyPage />} />
                   <Route path="/dashboard/suggestions" element={<Navigate to="/suggestions" replace />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
