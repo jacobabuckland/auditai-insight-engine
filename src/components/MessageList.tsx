@@ -9,6 +9,16 @@ interface MessageListProps {
 }
 
 export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
+  if (messages.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <p className="text-gray-500 text-center px-4 py-8 max-w-md">
+          Ask ConvertIQ a business goal, like 'increase AOV' or 'promote denim this week'.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 pb-24">
       {messages.map((message) => (
