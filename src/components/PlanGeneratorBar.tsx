@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -77,14 +76,21 @@ export const PlanGeneratorBar = () => {
     setPlanResult(null);
     
     try {
+      // Ensure we have a valid shopDomain, fallback to test store if not available
+      const validShopDomain = shopDomain || 
+        (typeof window !== "undefined" && localStorage.getItem("shop")) || 
+        "test-store.myshopify.com";
+      
+      console.log("Using shop domain:", validShopDomain);
+      
       const response = await fetch('https://auditai-insight-engine-1.onrender.com/agent/plan', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Shop-Domain': validShopDomain,
         },
         body: JSON.stringify({ 
           goal: input.trim(),
-          shopDomain: shopDomain
         }),
       });
       

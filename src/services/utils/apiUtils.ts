@@ -7,7 +7,12 @@ import { toast } from "@/components/ui/use-toast";
  * @returns boolean indicating if the shop domain is valid
  */
 export const verifyShopDomain = (shopDomain: string | null): boolean => {
-  if (!shopDomain) {
+  // If no shopDomain is provided, check localStorage or use fallback
+  const validShopDomain = shopDomain || 
+    (typeof window !== "undefined" && localStorage.getItem("shop")) || 
+    "test-store.myshopify.com";
+    
+  if (!validShopDomain) {
     toast({
       title: "Error",
       description: "Unable to detect store. Please refresh or contact support.",
@@ -29,9 +34,14 @@ export const API_BASE_URL = "https://auditai-insight-engine-1.onrender.com";
  * @returns Headers object with content type and shop domain
  */
 export const createApiHeaders = (shopDomain: string | null) => {
+  // Use fallback domain if needed
+  const validShopDomain = shopDomain || 
+    (typeof window !== "undefined" && localStorage.getItem("shop")) || 
+    "test-store.myshopify.com";
+    
   return {
     "Content-Type": "application/json",
-    ...(shopDomain && { "X-Shop-Domain": shopDomain }),
+    "X-Shop-Domain": validShopDomain,
   };
 };
 

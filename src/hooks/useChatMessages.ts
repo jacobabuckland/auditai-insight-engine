@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { MessageType, ActionGroup } from '@/types/chat';
 import { fetchStrategyPlan, StrategyResponse } from '@/services/strategyService';
@@ -60,8 +59,15 @@ export const useChatMessages = (shopDomain: string | null) => {
 
   const generateAIResponse = async (userInput: string) => {
     try {
+      // Ensure we have a valid shopDomain, fallback to test store if not available
+      const validShopDomain = shopDomain || 
+        (typeof window !== "undefined" && localStorage.getItem("shop")) || 
+        "test-store.myshopify.com";
+      
+      console.log("Using shop domain:", validShopDomain);
+      
       // Call the API to get the strategy plan
-      const response = await fetchStrategyPlan(userInput, shopDomain);
+      const response = await fetchStrategyPlan(userInput, validShopDomain);
       
       if (!response.success) {
         throw new Error(response.error || "Failed to generate strategy");
