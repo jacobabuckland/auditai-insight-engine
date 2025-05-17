@@ -5,11 +5,13 @@ import { MessageInput } from './MessageInput';
 import { LoadingIndicator } from './chat/LoadingIndicator';
 import { WelcomeScreen } from './chat/WelcomeScreen';
 import { useChatMessages } from '@/hooks/useChatMessages';
+import { useShop } from '@/contexts/ShopContext';
 
 export { type MessageType, type ActionGroup, type Action } from '@/types/chat';
 
 export const ChatInterface = () => {
-  const { messages, isLoading, addUserMessage, addAIResponse, generateAIResponse } = useChatMessages();
+  const { shopDomain } = useShop();
+  const { messages, isLoading, addUserMessage, generateAIResponse } = useChatMessages(shopDomain);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -30,12 +32,11 @@ export const ChatInterface = () => {
     // Ensure scroll happens after user message is added
     setTimeout(scrollToBottom, 100);
     
-    // Simulate AI processing delay
-    setTimeout(() => {
-      // Generate mock AI response
-      const aiResponse = generateAIResponse(content);
-      addAIResponse(aiResponse);
-    }, 1500);
+    // Generate real AI response from API
+    await generateAIResponse(content);
+    
+    // Scroll to bottom after response is received
+    setTimeout(scrollToBottom, 100);
   };
 
   return (

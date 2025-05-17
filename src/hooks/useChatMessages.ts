@@ -1,8 +1,10 @@
 
 import { useState } from 'react';
 import { MessageType, ActionGroup } from '@/types/chat';
+import { fetchStrategyPlan } from '@/services/auditService';
+import { toast } from "@/components/ui/use-toast";
 
-export const useChatMessages = () => {
+export const useChatMessages = (shopDomain: string | null) => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -38,31 +40,96 @@ export const useChatMessages = () => {
     }
   };
 
-  const generateAIResponse = (userInput: string): MessageType => {
-    const categories = ['Product', 'Merchandising', 'Lifecycle', 'Marketing'];
-    
-    // Generate 2-3 random action items per category
-    const actionGroups: ActionGroup[] = categories.map(category => {
-      const actionsCount = Math.floor(Math.random() * 2) + 2; // 2-3 actions
-      const actions = Array.from({ length: actionsCount }, (_, i) => ({
-        id: `${category}-${i}`,
-        title: `${getRandomActionTitle(category)}`,
-        description: getRandomActionDescription(),
-      }));
+  const generateAIResponse = async (userInput: string) => {
+    try {
+      // Call the API to get the strategy plan
+      const response = await fetchStrategyPlan(userInput, shopDomain);
       
-      return {
-        category,
-        actions,
+      if (!response.success) {
+        throw new Error(response.error || "Failed to generate strategy");
+      }
+      
+      // Process the API response into action groups
+      const categories = ['Product', 'Merchandising', 'Lifecycle', 'Marketing'];
+      const actionGroups: ActionGroup[] = [];
+      
+      // Parse the response into action groups if suggestions exist
+      if (response.suggestions && Array.isArray(response.suggestions)) {
+        // Group suggestions by category
+        const groupedSuggestions = response.suggestions.reduce((acc: Record<string, any[]>, suggestion: any) => {
+          const category = suggestion.category || 'Product';
+          if (!acc[category]) {
+            acc[category] = [];
+          }
+          acc[category].push(suggestion);
+          return acc;
+        }, {});
+        
+        // Create action groups from grouped suggestions
+        Object.entries(groupedSuggestions).forEach(([category, suggestions]) => {
+          const actions = suggestions.map((suggestion: any, index: number) => ({
+            id: `${category}-${index}`,
+            title: suggestion.text || suggestion.title || 'Suggestion',
+            description: suggestion.description || suggestion.rationale || '',
+          }));
+          
+          actionGroups.push({
+            category,
+            actions,
+          });
+        });
+      } else if (response.plan) {
+        // If no structured suggestions but we have a plan, create a simple action group
+        const items = response.plan.split('\n\n').filter(Boolean).slice(0, 3);
+        
+        categories.forEach((category, index) => {
+          const actions = [{
+            id: `${category}-0`,
+            title: category,
+            description: items[index] || `${category} strategy recommendation`,
+          }];
+          
+          actionGroups.push({
+            category,
+            actions,
+          });
+        });
+      }
+      
+      // Create AI response message
+      const aiResponse: MessageType = {
+        id: Date.now().toString(),
+        type: 'ai' as const,
+        content: response.reasoning || response.rationale || `Based on your goal to "${userInput}", I've analyzed your store data and identified several opportunities for improvement.`,
+        timestamp: new Date(),
+        actions: actionGroups.length > 0 ? actionGroups : undefined,
       };
-    });
-
-    return {
-      id: Date.now().toString(),
-      type: 'ai' as const,
-      content: `Based on your goal to "${userInput}", I've analyzed your store data and identified several opportunities for improvement. The most impactful areas to focus on are product presentation, customer journey optimization, and post-purchase engagement.`,
-      timestamp: new Date(),
-      actions: actionGroups,
-    };
+      
+      // Add the AI response to the messages
+      addAIResponse(aiResponse);
+      return aiResponse;
+      
+    } catch (error) {
+      console.error('Error generating AI response:', error);
+      
+      // Create an error message response
+      const errorResponse: MessageType = {
+        id: Date.now().toString(),
+        type: 'ai' as const,
+        content: `I'm sorry, I encountered an error while generating recommendations. Please try again later.`,
+        timestamp: new Date(),
+      };
+      
+      addAIResponse(errorResponse);
+      
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to generate recommendations",
+        variant: "destructive",
+      });
+      
+      return errorResponse;
+    }
   };
 
   return {
@@ -73,53 +140,4 @@ export const useChatMessages = () => {
     generateAIResponse,
     setIsLoading,
   };
-};
-
-const getRandomActionTitle = (category: string): string => {
-  const titles = {
-    'Product': [
-      'Optimize product imagery',
-      'Improve product descriptions',
-      'Add social proof elements',
-      'Highlight key features',
-      'Add comparison tables'
-    ],
-    'Merchandising': [
-      'Create product bundles',
-      'Implement cross-sells',
-      'Optimize pricing strategy',
-      'Add urgency elements',
-      'Improve collection pages'
-    ],
-    'Lifecycle': [
-      'Set up abandoned cart flows',
-      'Create post-purchase emails',
-      'Implement loyalty program',
-      'Optimize onboarding',
-      'Add subscription options'
-    ],
-    'Marketing': [
-      'Optimize ad targeting',
-      'Create retargeting campaigns',
-      'Implement influencer strategy',
-      'Optimize SEO content',
-      'Create social campaigns'
-    ]
-  };
-  
-  const categoryTitles = titles[category as keyof typeof titles] || titles['Product'];
-  return categoryTitles[Math.floor(Math.random() * categoryTitles.length)];
-};
-
-const getRandomActionDescription = (): string => {
-  const descriptions = [
-    'This will help improve customer engagement and increase conversion rates.',
-    'This strategy has shown to boost AOV by 15-20% in similar stores.',
-    'Implementing this can reduce cart abandonment and improve customer retention.',
-    'Our data shows this approach can increase repeat purchases by up to 25%.',
-    'This tactic can significantly improve customer lifetime value.',
-    'This has been proven to increase click-through rates and conversions.'
-  ];
-  
-  return descriptions[Math.floor(Math.random() * descriptions.length)];
 };
