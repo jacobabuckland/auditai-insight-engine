@@ -19,14 +19,14 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --upgrade pip && pip install playwright && python -m playwright install --with-deps
 
 # Copy only backend and shared code
-COPY backend/ ./backend/
-COPY backend/common/ ./backend/common/
+COPY backend-app/./backend-app/
+COPY backend-app/common/ ./backend-app/common/
 
 # Install Python dependencies
-RUN pip install -r backend/requirements.txt
+RUN pip install -r backend-app/requirements.txt
 
 # Expose the port your app runs on
 EXPOSE 10000
 
 # Run the app
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "10000"]
+CMD ["uvicorn", "backend-app.main:app", "--host", "0.0.0.0", "--port", "10000"]
