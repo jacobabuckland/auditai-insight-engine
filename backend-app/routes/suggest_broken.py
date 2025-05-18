@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 @router.post("/suggest")
 async def suggest(
     request: Request,
-    from backend.common.models import ShopSession
+    from backend-app.common.models import ShopSession
 ...
 x_shop_domain: str = Header(..., alias="X-Shop-Domain")
 shop_session = ShopSession(shop_domain=x_shop_domain)

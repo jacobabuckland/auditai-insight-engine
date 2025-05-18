@@ -1,7 +1,7 @@
-from backend.routes import plan
+from backend-app.routes import plan
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routes import suggest, crawl, debug_suggest, test_gpt
+from backend-app.routes import suggest, crawl, debug_suggest, test_gpt
 
 # ✅ Define the FastAPI app
 app = FastAPI(

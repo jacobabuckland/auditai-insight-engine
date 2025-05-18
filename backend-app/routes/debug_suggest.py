@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from backend.common.models import SuggestResponse
+from backend-app.common.models import SuggestResponse
 
 router = APIRouter()
 
