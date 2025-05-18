@@ -1,3 +1,4 @@
+from backend.routes import plan
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.routes import suggest, crawl, debug_suggest, test_gpt
@@ -32,3 +33,4 @@ app.include_router(suggest.router)
 app.include_router(crawl.router)
 app.include_router(debug_suggest.router)
 app.include_router(test_gpt.router)
+app.include_router(plan.router)
