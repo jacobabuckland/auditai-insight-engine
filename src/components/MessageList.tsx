@@ -1,17 +1,23 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { MessageType } from './ChatInterface';
 import { ActionCard } from './ActionCard';
 import { formatDistanceToNow } from 'date-fns';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { Target } from 'lucide-react';
+import { Button } from './ui/button';
+import { SuggestionPreviewDrawer } from './SuggestionPreviewDrawer';
+import { Action } from '@/types/chat';
+import { toast } from "./ui/use-toast";
 
 interface MessageListProps {
   messages: MessageType[];
 }
 
 export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
+  const [previewingSuggestion, setPreviewingSuggestion] = useState<Action | null>(null);
+
   if (messages.length === 0) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -69,6 +75,29 @@ export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
     
     // If it's a single paragraph, return it as is
     return <p dangerouslySetInnerHTML={{ __html: formattedText }} />;
+  };
+
+  const handlePreviewSuggestion = (action: Action) => {
+    setPreviewingSuggestion(action);
+  };
+
+  const handleLaunchSuggestion = () => {
+    toast({
+      title: "Suggestion Launched",
+      description: "Your suggestion has been successfully launched.",
+    });
+    setPreviewingSuggestion(null);
+  };
+
+  const handleRefineSuggestion = () => {
+    if (previewingSuggestion) {
+      const inputElement = document.querySelector('input[type="text"], textarea') as HTMLInputElement | HTMLTextAreaElement;
+      if (inputElement) {
+        inputElement.value = `Refine this suggestion to use a more bold CTA and increase urgency: "${previewingSuggestion.title}"`;
+        inputElement.focus();
+      }
+    }
+    setPreviewingSuggestion(null);
   };
 
   return (
@@ -134,11 +163,13 @@ export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
                             </div>
                             
                             <div className="flex gap-2 mt-4">
-                              <ActionCard 
-                                title={primaryAction.title} 
-                                description={primaryAction.description}
-                                isPrimary={true}
-                              />
+                              <Button 
+                                variant="default" 
+                                size="sm" 
+                                onClick={() => handlePreviewSuggestion(primaryAction)}
+                              >
+                                Preview
+                              </Button>
                             </div>
                           </CardContent>
                         </Card>
@@ -157,11 +188,20 @@ export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
                         </h4>
                         <div className="grid grid-cols-1 gap-3">
                           {group.actions.slice(groupIndex === 0 ? 1 : 0).map((action) => (
-                            <ActionCard 
-                              key={action.id} 
-                              title={action.title} 
-                              description={action.description} 
-                            />
+                            <div key={action.id} className="flex flex-col">
+                              <ActionCard 
+                                title={action.title} 
+                                description={action.description} 
+                              />
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="self-end mt-2"
+                                onClick={() => handlePreviewSuggestion(action)}
+                              >
+                                Preview
+                              </Button>
+                            </div>
                           ))}
                           {group.actions.length === 1 && groupIndex === 0 && (
                             <p className="text-sm text-gray-500 italic">Additional tactics will appear here.</p>
@@ -176,6 +216,15 @@ export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
           )}
         </div>
       ))}
+      
+      {/* Suggestion Preview Drawer */}
+      <SuggestionPreviewDrawer
+        isOpen={previewingSuggestion !== null}
+        onClose={() => setPreviewingSuggestion(null)}
+        suggestion={previewingSuggestion}
+        onLaunch={handleLaunchSuggestion}
+        onRefine={handleRefineSuggestion}
+      />
     </div>
   );
 };
