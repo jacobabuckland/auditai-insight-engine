@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from starlette.concurrency import run_in_threadpool
-from backend-app.gpt import call_gpt  # Assuming correct path now
+from backend_app.gpt import call_gpt  # Assuming correct path now
 import logging
 
 router = APIRouter()
