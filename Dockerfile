@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --upgrade pip && pip install playwright && python -m playwright install --with-deps
 
 # Copy only backend and shared code
-COPY backend-app/./backend-app/
+COPY backend-app/ ./backend-app/
 COPY backend-app/common/ ./backend-app/common/
 
 # Install Python dependencies
