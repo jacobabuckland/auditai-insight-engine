@@ -5,6 +5,7 @@ import { ActionCard } from './ActionCard';
 import { formatDistanceToNow } from 'date-fns';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
+import { Target } from 'lucide-react';
 
 interface MessageListProps {
   messages: MessageType[];
@@ -113,19 +114,22 @@ export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
                     
                     if (primaryAction) {
                       return (
-                        <Card className="border-l-4 border-l-green-500 bg-green-50/50 shadow-sm hover:shadow-md transition-shadow">
+                        <Card className="border-l-4 border-l-green-500 bg-white shadow-sm hover:shadow-md transition-shadow mb-4">
                           <CardContent className="pt-6">
                             <div className="flex justify-between items-start mb-2">
-                              <h3 className="font-bold text-lg">{primaryAction.title}</h3>
+                              <h3 className="text-lg font-bold flex items-center gap-2">
+                                <Target className="h-5 w-5 text-green-600" /> Primary Recommendation
+                              </h3>
                               <Badge className="bg-green-600">High Impact</Badge>
                             </div>
+                            <h4 className="font-semibold text-md mb-2">{primaryAction.title}</h4>
                             <p className="text-gray-800 mb-4">{primaryAction.description}</p>
-                            <div className="bg-white p-3 rounded-md border border-gray-100 mt-4">
-                              <h4 className="text-sm font-medium text-gray-700 mb-1">Strategic Justification</h4>
+                            <div className="bg-gray-50 p-3 rounded-md border border-gray-100 mt-4">
+                              <h4 className="text-sm font-medium text-gray-700 mb-1">Why this action matters</h4>
                               <p className="text-sm text-gray-600">
-                                We chose this strategy because it directly addresses your goal while maintaining 
-                                balance between performance and innovation. This approach optimizes for both immediate 
-                                results and long-term strategic positioning in your market segment.
+                                This action was prioritised because Product X has high stock availability 
+                                and pairing it with bestsellers in the hero zone increases visibility 
+                                without disrupting site conversion.
                               </p>
                             </div>
                             
