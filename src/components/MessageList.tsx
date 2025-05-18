@@ -21,6 +21,55 @@ export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
     );
   }
 
+  // Function to format the reasoning text with highlighted keywords
+  const formatReasoning = (text: string) => {
+    // Keywords to highlight
+    const keywords = [
+      'High stock', 'Low stock', 'Hero banner', 'High CTR', 'Low CTR', 
+      'Maintain AOV', 'Increase AOV', 'Conversion rate', 'Traffic', 
+      'Visibility', 'Bounce rate', 'without', 'zone', 'or conversion'
+    ];
+    
+    // Function to highlight words or phrases
+    let formattedText = text;
+    keywords.forEach(keyword => {
+      // Case insensitive replace with regex
+      const regex = new RegExp(`(${keyword})`, 'gi');
+      formattedText = formattedText.replace(regex, (match) => {
+        // Determine the appropriate color class based on keyword
+        let colorClass = 'text-purple-600';
+        if (match.toLowerCase().includes('high') || match.toLowerCase() === 'without') {
+          colorClass = 'text-green-600';
+        } else if (match.toLowerCase().includes('low')) {
+          colorClass = 'text-red-600';
+        } else if (match.toLowerCase() === 'zone') {
+          colorClass = 'text-amber-600';
+        } else if (match.toLowerCase().includes('conversion')) {
+          colorClass = 'text-purple-600';
+        }
+        
+        return `<span class="font-semibold ${colorClass}">${match}</span>`;
+      });
+    });
+    
+    // Convert the text into paragraphs or bullet points
+    if (formattedText.includes('\n')) {
+      // If there are line breaks, convert to bullet points
+      const lines = formattedText.split('\n').filter(line => line.trim() !== '');
+      
+      return (
+        <ul className="list-disc pl-5 space-y-1">
+          {lines.map((line, index) => (
+            <li key={index} dangerouslySetInnerHTML={{ __html: line }} />
+          ))}
+        </ul>
+      );
+    }
+    
+    // If it's a single paragraph, return it as is
+    return <p dangerouslySetInnerHTML={{ __html: formattedText }} />;
+  };
+
   return (
     <div className="space-y-6 pb-24">
       {messages.map((message) => (
@@ -45,8 +94,14 @@ export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
             <p className="whitespace-pre-wrap">{message.content}</p>
           ) : (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">🧠 AI Reasoning</h2>
-              <p className="whitespace-pre-wrap bg-gray-50 p-4 rounded-md mb-6">{message.content}</p>
+              <div className="bg-gray-50 p-4 rounded mb-4">
+                <h2 className="text-lg font-bold flex items-center gap-2 mb-2">
+                  <span role="img" aria-label="brain">🧠</span> Why this strategy works
+                </h2>
+                <div className="text-gray-700">
+                  {formatReasoning(message.content)}
+                </div>
+              </div>
               
               {message.actions && message.actions.length > 0 && (
                 <div className="mt-6 space-y-6">
