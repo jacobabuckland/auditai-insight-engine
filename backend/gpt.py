@@ -2,8 +2,11 @@ import os
 import time
 import logging
 from typing import List
-from openai import OpenAI
+import openai
 from openai.types.chat import ChatCompletionMessageParam
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
 
 # Set up OpenAI client using environment variable
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
