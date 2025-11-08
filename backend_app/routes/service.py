@@ -1,3 +1,13 @@
+from uuid import UUID
+
+def _parse_ws(x_workspace_id: str | None) -> UUID:
+    if not x_workspace_id:
+        raise HTTPException(400, "X-Workspace-ID header required")
+    try:
+        return UUID(x_workspace_id)
+    except Exception:
+        raise HTTPException(400, "X-Workspace-ID must be a UUID")
+
 from fastapi import APIRouter, Depends, Header, HTTPException
 from typing import Dict
 from backend_app.common.models import SuggestionsImport, CampaignMetricsIn
