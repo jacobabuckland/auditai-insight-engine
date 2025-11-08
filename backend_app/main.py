@@ -2,6 +2,7 @@ from backend_app.routes import plan
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend_app.routes import suggest, crawl, debug_suggest, test_gpt
+from backend_app.routes import service
 
 # ✅ Define the FastAPI app
 app = FastAPI(
@@ -29,6 +30,7 @@ def health_check():
     return {"status": "ok"}
 
 # ✅ Include core route modules
+app.include_router(service.router)
 app.include_router(suggest.router)
 app.include_router(crawl.router)
 app.include_router(debug_suggest.router)

@@ -34,3 +34,43 @@ class PageData(BaseModel):
 class ShopSession(BaseModel):
     shop_domain: str
     access_token: Optional[str] = None
+# --- CartPilot service DTOs (for n8n) ---
+from pydantic import BaseModel, Field
+from typing import Optional, List, Literal, Dict
+from uuid import UUID
+from datetime import datetime
+
+Priority = Literal["High","Medium","Low"]
+Category = Literal["Marketing","Merchandising","Operations"]
+Level = Literal["Low","Medium","High"]
+
+class SuggestionIn(BaseModel):
+    title: str
+    summary: Optional[str] = None
+    priority: Priority = "Medium"
+    category: Category = "Operations"
+    impact: Optional[Level] = None
+    effort: Optional[Level] = None
+    what: Optional[str] = None
+    why: Optional[str] = None
+    how: Optional[List[str]] = None
+    dataUsed: Optional[List[str]] = None
+    risks: Optional[List[str]] = None
+    actions: Optional[List[str]] = None
+    sources: Optional[List[str]] = None
+    meta: Optional[Dict] = None
+    uniqueKey: Optional[str] = Field(default=None, description="Idempotency key")
+
+class SuggestionsImport(BaseModel):
+    workspaceId: UUID
+    items: List[SuggestionIn]
+
+class MetricRow(BaseModel):
+    source: str
+    ts: datetime
+    metric: str
+    value: float
+
+class CampaignMetricsIn(BaseModel):
+    workspaceId: UUID
+    rows: List[MetricRow]
